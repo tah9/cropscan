@@ -1,11 +1,9 @@
 package com.nuist.cropscan.ActPicture;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.database.Cursor;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -15,10 +13,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.nuist.cropscan.PcPathBean;
 import com.nuist.cropscan.R;
-import com.nuist.cropscan.adapter.TestAdapter;
+import com.nuist.cropscan.adapter.GalleryAdapter;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ActGallery extends AppCompatActivity {
     static {
@@ -28,7 +25,7 @@ public class ActGallery extends AppCompatActivity {
     public Context context = this;
     private static final String TAG = "GalleryMain";
     private RecyclerView recyclerView;
-    private TestAdapter picAdapter;
+    private GalleryAdapter picAdapter;
     private String rootPath = Environment.getExternalStorageDirectory().getAbsolutePath();
 
     ArrayList<PcPathBean> imgPaths = new ArrayList<>();
@@ -53,7 +50,7 @@ public class ActGallery extends AppCompatActivity {
 //            setTitle("" + imgPaths.size());
             if (!spendTime) {
                 spendTime = true;
-                Toast.makeText(context, "页面启动" + startSpendTime + "ms\n扫描消耗" + (System.currentTimeMillis() - startTime) + "ms", Toast.LENGTH_LONG).show();
+//                Toast.makeText(context, "页面启动" + startSpendTime + "ms\n扫描消耗" + (System.currentTimeMillis() - startTime) + "ms", Toast.LENGTH_LONG).show();
                 Log.d(TAG, "nativeCallback: " + "页面启动" + startSpendTime + "ms\n扫描消耗" + (System.currentTimeMillis() - startTime) + "ms");
             }
             picAdapter.notifyItemRangeInserted(
@@ -121,7 +118,11 @@ public class ActGallery extends AppCompatActivity {
         recyclerView.setItemAnimator(null);
         gridLayoutManager = new GridLayoutManager(context, 4);
         recyclerView.setLayoutManager(gridLayoutManager);
-        picAdapter = new TestAdapter(imgPaths, context, rootPath);
+        picAdapter = new GalleryAdapter(imgPaths, context, rootPath);
+        picAdapter.setBack(path -> {
+            setResult(RESULT_OK, new Intent().putExtra("path",path));
+            finish();
+        });
         recyclerView.setAdapter(picAdapter);
         recyclerView.setItemViewCacheSize(30);
     }

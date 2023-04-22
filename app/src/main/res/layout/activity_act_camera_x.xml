@@ -17,13 +17,13 @@
     <ImageView
 
         android:id="@+id/btn_capture"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toTopOf="@+id/guideline2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="?android:attr/listChoiceIndicatorSingle" />
+        app:srcCompat="@drawable/circle" />
 
 
     <ImageView
@@ -32,11 +32,25 @@
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:padding="25dp"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toTopOf="@+id/guideline2"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_capture"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/btn_capture"
+        app:layout_constraintTop_toTopOf="@+id/btn_capture"
         app:srcCompat="@android:drawable/stat_notify_sync" />
+
+    <ImageView
+        android:id="@+id/btn_switch_lens2"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:background="#ffffff"
+        android:padding="2dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_capture"
+        app:layout_constraintEnd_toStartOf="@+id/btn_capture"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btn_capture"
+        app:srcCompat="@drawable/simple" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline2"
@@ -58,8 +72,9 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.75" />
-    <ImageView
 
+    <ImageView
+        android:scaleType="centerCrop"
         android:id="@+id/pic_mask"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -68,5 +83,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/act_cameraTest_pv_cameraPreview" />
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/tip_recy"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        app:layout_constraintBottom_toTopOf="@+id/btn_switch_lens"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

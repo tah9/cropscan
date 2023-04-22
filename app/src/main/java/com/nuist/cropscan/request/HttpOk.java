@@ -1,5 +1,7 @@
 package com.nuist.cropscan.request;
 
+import static com.nuist.cropscan.request.BASEURL.entireHost;
+
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -28,13 +30,14 @@ public class HttpOk {
     static HttpOk httpOk;
     private final Handler handler;
     private final OkHttpClient okHttpClient;
-    public static String ip = "http://10.0.48.143:5000";
+
 
     public HttpOk() {
         handler = new Handler(Looper.getMainLooper());
-        okHttpClient = new OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS) //连接超时
-                .readTimeout(20, TimeUnit.SECONDS) //读取超时
-                .writeTimeout(20, TimeUnit.SECONDS) //写超时;
+        okHttpClient = new OkHttpClient.Builder().connectTimeout(20 , TimeUnit.SECONDS) //连接超时
+                .readTimeout(20 , TimeUnit.SECONDS) //读取超时
+                .writeTimeout(20 , TimeUnit.SECONDS) //写超时;
+                .callTimeout(20 , TimeUnit.SECONDS) //写超时;
                 .build();
     }
 
@@ -62,7 +65,7 @@ public class HttpOk {
     }
 
     public HttpOk setPostFile(String path) {
-        MediaType MEDIA_TYPE = MediaType.parse("image/*");
+//        MediaType MEDIA_TYPE = MediaType.parse("image/*");
         // form 表单形式上传
         MultipartBody.Builder multipartBodyBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
         multipartBodyBuilder.addFormDataPart("image",
@@ -99,7 +102,7 @@ public class HttpOk {
 
     public void to(String url, back back) {
         try {
-            String wholeUrl = ip + url;
+            String wholeUrl = entireHost + url;
             Log.d(TAG, "to: " + wholeUrl);
             if (builder == null) {
                 builder = new Request.Builder();

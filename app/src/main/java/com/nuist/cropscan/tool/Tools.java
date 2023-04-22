@@ -1,4 +1,4 @@
-package com.nuist.cropscan;
+package com.nuist.cropscan.tool;
 
 import android.content.Context;
 import android.graphics.Bitmap;

@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">cropscan</string>
+    <string name="app_name">PlantCare</string>
+    <string name="web_version">WebVersion</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 </resources>

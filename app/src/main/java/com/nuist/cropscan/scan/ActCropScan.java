@@ -1,23 +1,25 @@
 package com.nuist.cropscan.scan;
 
-import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.camera.core.CameraSelector;
-import androidx.camera.view.PreviewView;
-
-import com.bumptech.glide.Glide;
 import com.nuist.cropscan.ActPicture.ActCameraX;
-import com.nuist.cropscan.R;
-import com.nuist.cropscan.Tools;
-import com.nuist.cropscan.request.HttpOk;
+import com.nuist.cropscan.MainActivity;
+import com.nuist.cropscan.tool.Tools;
+import com.nuist.cropscan.request.OkUtils;
+import com.nuist.cropscan.tool.LoadingDialogUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 /**
  * ->  tah9  2023/3/23 19:41
@@ -33,26 +35,60 @@ public class ActCropScan extends ActCameraX {
     }
 
     @Override
-    public void clickCapture(PreviewView previewView) {
-        Bitmap bitmap = previewView.getBitmap();
-//            screenImage.setImageBitmap(bitmap);
+    public void clickCapture(Bitmap bitmap) {
+        LoadingDialogUtils.show(this, false);
+
         String path = Tools.saveBitmapFile(context, bitmap);
-        Log.d(TAG, "initView: " + path);
-        Dialog dialog = new Dialog(context);
-        View dialogRoot = LayoutInflater.from(context).inflate(R.layout.dialogresult, null);
-        dialog.setContentView(dialogRoot);
-        TextView title = dialogRoot.findViewById(R.id.dialogtitle);
-        ImageView resultPic = dialogRoot.findViewById(R.id.dialogpic);
-        resultPic.setImageBitmap(bitmap);
+        picMask.setImageBitmap(bitmap);
+        OkUtils.getInstance().upLoadImage("/classify", path,getIntent().getStringExtra("uid") , new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
 
-        dialog.getWindow().setGravity(Gravity.CENTER);
+            }
 
-        dialog.show();
-        HttpOk.getInstance().setPostFile(path).to("/classify", o -> {
-            Log.d(TAG, "initView: " + o.toString());
-            Glide.with(context).load(o.getString("path")).into(resultPic);
-            title.setText("识别完成");
-//                dialog.dismiss();
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                LoadingDialogUtils.dismiss();
+                try {
+                    String string = response.body().string();
+                    Log.d(TAG, "onResponse: " + string);
+                    JSONObject o = new JSONObject(string);
+                    if (o.optInt("acc") == 1) {
+                        setString("plant", o.optString("plant"));
+//                            //识别完成
+//                            setString("localPicPath", path);
+//                            setString("name", o.optString("name"));
+//                            setString("color", o.optString("color"));
+//                            setString("bottomPic", path);
+//
+//                            Log.d(TAG, "clickCapture: " + o);
+//                            startActivity(new Intent(ActCropScan.this, MainActivity.class));
+                        finish();
+                    } else {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "检测失败", Toast.LENGTH_SHORT).show();
+                                picMask.setImageBitmap(null);
+                            }
+                        });
+                    }
+
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         });
+//        HttpOk.getInstance().setPostFile(path).to("/classify", o -> {
+//
+////            //识别完成
+////            setString("localPicPath", path);
+////            setString("name", o.optString("name"));
+////            setString("color",o.optString("color"));
+////            Log.d(TAG, "clickCapture: "+o);
+////            LoadingDialogUtils.dismiss();
+////            startActivity(new Intent(ActCropScan.this, MainActivity.class));
+//////            finish();
+//        });
     }
 }
