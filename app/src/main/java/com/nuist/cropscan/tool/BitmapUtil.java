@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory;
 import android.util.Base64;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 /**
@@ -12,6 +14,22 @@ import java.io.IOException;
  */
 public class BitmapUtil {
 
+    public static String path2B64(String path){
+        try {
+            File file = new File(path);
+            FileInputStream inputStream = new FileInputStream(file);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, length);
+            }
+            byte[] imageBytes = outputStream.toByteArray();
+            return Base64.encodeToString(imageBytes, Base64.NO_WRAP);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     public static String bit2B64(Bitmap bitmap) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);

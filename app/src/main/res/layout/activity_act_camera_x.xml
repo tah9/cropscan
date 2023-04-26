@@ -6,6 +6,14 @@
     android:layout_height="match_parent"
     tools:context=".ActPicture.ActCameraX">
 
+    <TextView
+        android:gravity="center"
+        android:textColor="#ffffff"
+        android:id="@+id/tipTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/act_cameraTest_pv_cameraPreview"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.camera.view.PreviewView
         android:id="@+id/act_cameraTest_pv_cameraPreview"
@@ -73,11 +81,11 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.75" />
 
-    <ImageView
-        android:scaleType="centerCrop"
+    <com.nuist.cropscan.view.BoxImageView
         android:id="@+id/pic_mask"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="@+id/act_cameraTest_pv_cameraPreview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

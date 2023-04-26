@@ -118,7 +118,11 @@ public class ActWeb extends BaseAct {
         WebView webView = fragWeb.getWebView();
         Log.d(TAG, "onBackPressed: " + webView.getUrl());
         if (webView.getUrl().equals("file://" + FileConfig.webFileHome(context) + "#/home")
-                || webView.getUrl().equals("file://" + FileConfig.webFileHome(context) + "#/login")) {
+                || webView.getUrl().equals("file://" + FileConfig.webFileHome(context) + "#/login")
+                || webView.getUrl().equals(BASEURL.entireWebHost+"/#/home")
+                || webView.getUrl().equals(BASEURL.entireWebHost+"/#/login")
+
+        ) {
             Log.d(TAG, "onBackPressed: 符合");
             if (System.currentTimeMillis() - firstPressedTime < 2000) {
                 super.onBackPressed();

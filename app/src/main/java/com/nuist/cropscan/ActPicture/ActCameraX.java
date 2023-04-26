@@ -1,23 +1,15 @@
 package com.nuist.cropscan.ActPicture;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.SurfaceTexture;
 import android.graphics.drawable.Drawable;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.util.Size;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -36,11 +28,11 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.nuist.cropscan.R;
-import com.nuist.cropscan.tool.Tools;
 import com.nuist.cropscan.base.BaseAct;
-import com.nuist.cropscan.request.BASEURL;
+import com.nuist.cropscan.camera.example.adapter.CameraSimpleAda;
 import com.nuist.cropscan.request.HttpOk;
 import com.nuist.cropscan.tool.ImgTool;
+import com.nuist.cropscan.view.BoxImageView;
 
 import org.json.JSONArray;
 
@@ -56,32 +48,31 @@ public class ActCameraX extends BaseAct {
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private ProcessCameraProvider cameraProvider;
     private Preview preview;
-    public ImageView picMask;
+    public BoxImageView picMask;
     private RecyclerView tipRecy;
+    public TextView tipTv;
+
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 99) {
-            try {
-                String path = data.getStringExtra("path");
-                Log.d(TAG, "onActivityResult: " + path);
-                Glide.with(context).asBitmap().load(path)
-                        .into(new CustomTarget<Bitmap>() {
-                                  @Override
-                                  public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                      clickCapture(resource);
-                                  }
-
-                                  @Override
-                                  public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                                  }
+            String path = data.getStringExtra("path");
+            Log.d(TAG, "onActivityResult: " + path);
+            Glide.with(context).asBitmap().load(path)
+                    .into(new CustomTarget<Bitmap>() {
+                              @Override
+                              public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                                  clickCapture(resource);
                               }
-                        );
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+
+                              @Override
+                              public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                              }
+                          }
+                    );
         }
     }
 
@@ -107,7 +98,6 @@ public class ActCameraX extends BaseAct {
     }
 
     private boolean onCameraCreate;
-
 
 
     protected void initCamera() {
@@ -162,7 +152,7 @@ public class ActCameraX extends BaseAct {
 
     @SuppressLint("RestrictedApi")
     private void initView() {
-
+        tipTv = findViewById(R.id.tipTv);
         btnSwitchLens2 = findViewById(R.id.btn_switch_lens2);
         tipRecy = findViewById(R.id.tip_recy);
         btnSwitchLens2.setOnClickListener(view -> {
@@ -186,47 +176,14 @@ public class ActCameraX extends BaseAct {
                 picMask.setImageBitmap(null);
             }, 1000);
         });
-        picMask = (ImageView) findViewById(R.id.pic_mask);
+        picMask = findViewById(R.id.pic_mask);
 
         HttpOk.getInstance().to("/simpleImg", o -> {
             JSONArray rows = o.optJSONArray("rows");
             Log.d(TAG, "initView: " + rows);
             if (rows != null && rows.length() != 0) {
                 tipRecy.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
-                tipRecy.setAdapter(new RecyclerView.Adapter() {
-                    @NonNull
-                    @Override
-                    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                        return new RecyclerView.ViewHolder(LayoutInflater.from(context).inflate(R.layout.cameratip, null)) {
-                        };
-                    }
-
-                    @Override
-                    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-                        ImageView pic = holder.itemView.findViewById(R.id.pic);
-                        String imgPath = BASEURL.entireHost + "/static/simpleImg/" + rows.optString(position);
-                        Glide.with(pic).load(imgPath).into(pic);
-                        Log.d(TAG, "onBindViewHolder: " + BASEURL.entireHost + "/static/simpleImg/" + rows.optString(position));
-                        holder.itemView.setOnClickListener(view -> {
-                            Glide.with(context).asBitmap().load(imgPath).into(new CustomTarget<Bitmap>() {
-                                @Override
-                                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                    clickCapture(resource);
-                                }
-
-                                @Override
-                                public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                                }
-                            });
-                        });
-                    }
-
-                    @Override
-                    public int getItemCount() {
-                        return rows.length();
-                    }
-                });
+                tipRecy.setAdapter(new CameraSimpleAda(context, rows).setOnClickSimPic(this::clickCapture));
                 tipRecy.bringToFront();
             }
 

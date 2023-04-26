@@ -60,7 +60,7 @@ public class HttpOk {
     }
 
     public HttpOk setPost(Map<String, Object> map) {
-        this.builder = new Request.Builder().post(HttpOk.body(map));
+        this.builder = new Request.Builder().post(HttpOk.jsonBody(map));
         return this;
     }
 
@@ -78,25 +78,52 @@ public class HttpOk {
     }
 
 
-
-    public static RequestBody body(Map<String, Object> map) {
+    public static RequestBody jsonBody(Map<String, Object> map) {
         return RequestBody.create(MediaType.parse("application/json;charset=utf-8"), new JSONObject(map).toString());
     }
+
+    //x-www-form-urlencoded
+//    public static RequestBody xwfBody(Map<String, Object> map) {
+//
+//    }
 
     void setback(String last, String json, back back) {
         handler.post(() -> {
             try {
                 JSONObject data = new JSONObject(json);
-                int code = data.optInt("code");
-                if (code == 200) {
-                    back.back(data);
-                } else {
-                    throw new Exception();
-                }
+                back.back(data);
             } catch (Exception e) {
-                System.out.println(last);
-                System.out.println(json);
                 e.printStackTrace();
+            }
+        });
+    }
+
+
+    /*
+    百度智能云接口
+     */
+    public void toBDApi(String url, String token, String base64, back back) {
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
+        RequestBody body = RequestBody.create(mediaType, "image=" + base64);
+//        Log.d(TAG, "baidu to: " + url);
+        Request request = new Request.Builder()
+                .url(url + "?access_token=" + token)
+                .method("POST", body)
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .addHeader("Accept", "application/json")
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+//                    setback(url, "", back);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                setback(url, response.body().string(), back);
             }
         });
     }

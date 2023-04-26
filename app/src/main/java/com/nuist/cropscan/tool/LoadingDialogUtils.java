@@ -41,9 +41,14 @@ public class LoadingDialogUtils {
     }
 
     public static void setCancelable(boolean b) {
-        if (loadingDialog == null) return;
-        loadingDialog.setCancelable(b);
+//        if (loadingDialog == null) return;
+//        loadingDialog.setCancelable(b);
     }
+//    public static void destroyOnCancel(Activity act){
+//        act.finish();
+//    }
+
+
 
     /**
      * 显示等待框

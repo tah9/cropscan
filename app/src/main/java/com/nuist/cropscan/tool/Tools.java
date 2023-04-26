@@ -162,7 +162,7 @@ public class Tools {
         File file = new File(context.getCacheDir().getAbsolutePath()+"/"+System.currentTimeMillis()+".jpg");//将要保存图片的路径
         try {
             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bos);
             bos.flush();
             bos.close();
         } catch (IOException e) {
