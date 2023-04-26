@@ -108,40 +108,7 @@ public class ActCameraX extends BaseAct {
 
     private boolean onCameraCreate;
 
-    private void setWH() {
-        // 获取 CameraManager 对象
-        CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
 
-// 获取当前摄像头的 ID
-        String cameraId = String.valueOf(CameraCharacteristics.LENS_FACING_BACK); // 后置摄像头
-        CameraCharacteristics characteristics = null;
-        try {
-            characteristics = cameraManager.getCameraCharacteristics(cameraId);
-            // 获取当前摄像头的画幅信息
-            StreamConfigurationMap streamConfigurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            Size[] outputSizes = streamConfigurationMap.getOutputSizes(SurfaceTexture.class);
-            float aspectRatio = (float) outputSizes[0].getWidth() / outputSizes[0].getHeight();
-            int width = Tools.getWidth(context);
-            int lenWidth = outputSizes[0].getWidth();
-            int lenHeight = outputSizes[0].getHeight();
-            float scaleSize = (float) lenWidth / width;
-            ViewGroup.LayoutParams layoutParams = cameraView.getLayoutParams();
-            Log.d(TAG, "setWH: " + scaleSize);
-//            layoutParams.width = previewViewWidth;
-            layoutParams.height = (int) (lenHeight / 1);
-            Log.d(TAG, "setWH: " + layoutParams.height);
-
-            cameraView.setLayoutParams(layoutParams);
-//            Log.d(TAG, "setWH: "+outputSizes[0].toString());
-//            Log.d(TAG, "setWH: "+outputSizes[1].toString());
-//            for (Size outputSize : outputSizes) {
-//                Log.d(TAG, "setWH: "+outputSize.toString());
-//            }
-        } catch (CameraAccessException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
 
     protected void initCamera() {
 

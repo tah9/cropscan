@@ -34,10 +34,10 @@ public class HttpOk {
 
     public HttpOk() {
         handler = new Handler(Looper.getMainLooper());
-        okHttpClient = new OkHttpClient.Builder().connectTimeout(20 , TimeUnit.SECONDS) //连接超时
-                .readTimeout(20 , TimeUnit.SECONDS) //读取超时
-                .writeTimeout(20 , TimeUnit.SECONDS) //写超时;
-                .callTimeout(20 , TimeUnit.SECONDS) //写超时;
+        okHttpClient = new OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS) //连接超时
+                .readTimeout(20, TimeUnit.SECONDS) //读取超时
+                .writeTimeout(20, TimeUnit.SECONDS) //写超时;
+                .callTimeout(20, TimeUnit.SECONDS) //写超时;
                 .build();
     }
 
@@ -64,18 +64,19 @@ public class HttpOk {
         return this;
     }
 
-    public HttpOk setPostFile(String path) {
-//        MediaType MEDIA_TYPE = MediaType.parse("image/*");
-        // form 表单形式上传
-        MultipartBody.Builder multipartBodyBuilder = new MultipartBody.Builder().setType(MultipartBody.FORM);
-        multipartBodyBuilder.addFormDataPart("image",
-                path,
-                RequestBody.create(MediaType.parse("image/*"), new File(path)));
-//        MediaType mediaType3 = MediaType.parse("text/x-markdown; charset=utf-8");
-//        RequestBody requestBody3 = RequestBody.create(mediaType3, new File(path));
-        this.builder = new Request.Builder().post(multipartBodyBuilder.build());
+
+    public HttpOk upLoadFile(Map<String, String> map, String fileKey, String path) {
+        MultipartBody.Builder fm = new MultipartBody.Builder().setType(MultipartBody.FORM);
+        for (String key : map.keySet()) {
+            fm.addFormDataPart(key, map.get(key));
+        }
+        File file = new File(path);
+        this.builder = new Request.Builder().post(
+                fm.addFormDataPart(fileKey, file.getName(),
+                        RequestBody.create(MediaType.parse("image/jpg"), file)).build());
         return this;
     }
+
 
 
     public static RequestBody body(Map<String, Object> map) {
@@ -109,7 +110,8 @@ public class HttpOk {
             }
             okHttpClient.newCall(builder.url(wholeUrl)
 //                    .addHeader("Authorization", "APPCODE b814b598bc66459eba5923357b18bba0")
-                    .build()).enqueue(new Callback() {
+                            .build()
+            ).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     e.printStackTrace();

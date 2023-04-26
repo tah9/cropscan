@@ -1,8 +1,15 @@
 package com.nuist.cropscan.tool;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+
+import com.nuist.cropscan.R;
+import com.nuist.cropscan.base.BaseFrag;
+import com.nuist.cropscan.scan.ActCropScan;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,8 +20,11 @@ import org.json.JSONObject;
 public class JsHybrid {
     private static final String TAG = "JsHybrid";
 
-    @JavascriptInterface
-    public static void getLocalStorage(String user) {
-        Log.d(TAG, "getLocalStorage: " + user);
-    }
+
+
+
+
+
+
+
 }

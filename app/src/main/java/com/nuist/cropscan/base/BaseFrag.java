@@ -6,6 +6,8 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.nuist.cropscan.ActPicture.ActCameraX;
+
 /**
  * ->  tah9  2023/4/5 20:52
  */
@@ -13,6 +15,9 @@ public class BaseFrag extends Fragment {
     public Context context;
     public static final String TAG = "BaseFrag";
 
+    public BaseAct getBaseAct(){
+        return ((BaseAct) getActivity());
+    }
     public void setString(String key, String value) {
         ((BaseAct) getActivity()).setString(key, value);
     }

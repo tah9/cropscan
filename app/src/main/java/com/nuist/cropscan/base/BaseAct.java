@@ -40,19 +40,6 @@ public class BaseAct extends AppCompatActivity implements EasyPermissions.Permis
     SharedPreferences.Editor editor;
 
 
-//    public JSONObject getUser() {
-//        try {
-//            return new JSONObject(optString("user"));
-//        } catch (JSONException e) {
-//            return new JSONObject();
-//        }
-//    }
-
-    public void beforeGetUser(WebView webView) {
-        webView.loadUrl(
-                "javascript:(function(){window.androidMethods.getLocalStorage(window.localStorage.getItem('user'))}" +
-                        ")()");
-    }
 
     public void setString(String key, String value) {
         editor.putString(key, value).commit();
@@ -67,14 +54,19 @@ public class BaseAct extends AppCompatActivity implements EasyPermissions.Permis
     }
 
     public void setInt(String key, int value) {
-        editor.putInt(key, value);
+        editor.putInt(key, value).commit();
     }
 
+    public void clearSp(){
+        int webVersion = optInt(getResources().getString(R.string.web_version));
+        editor.clear().commit();
+        setInt(getResources().getString(R.string.web_version),webVersion);
+    }
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         methodRequiresThreePermission();
-        sharedPreferences = getSharedPreferences("user", MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(getPackageName(), MODE_PRIVATE);
         editor = sharedPreferences.edit();
     }
 

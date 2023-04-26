@@ -4,13 +4,16 @@ plugins {
 
 android {
     compileSdk 33
+    aaptOptions.cruncherEnabled = false;
+    aaptOptions.useNewCruncher = false;
+
     defaultConfig {
         applicationId "com.nuist.cropscan"
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 1
-        versionName "1.0"
+        versionCode 4
+        versionName "2.3.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -42,12 +45,26 @@ android {
         }
     }
     ndkVersion '23.2.8568313'
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 
 dependencies {
     implementation files('libs\\okhttp-3.12.0.jar')
     implementation files('libs\\okio-1.15.0.jar')
+
+    implementation 'me.laoyuyu.aria:core:3.8.16'//下载器
+    annotationProcessor 'me.laoyuyu.aria:compiler:3.8.16'
+
+
+    implementation 'androidx.navigation:navigation-fragment:2.5.3'
+    implementation 'androidx.navigation:navigation-ui:2.5.3'
+
+    // For developers using AndroidX in their applications
+    implementation 'pub.devrel:easypermissions:3.0.0'
+
     //CameraX
     def camerax_version = "1.1.0-beta01"
     implementation "androidx.camera:camera-core:$camerax_version"
@@ -55,7 +72,7 @@ dependencies {
     implementation "androidx.camera:camera-lifecycle:$camerax_version"
     implementation "androidx.camera:camera-view:1.0.0-alpha31"
 
-    
+
 //    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.11'
 
     implementation 'com.github.bumptech.glide:glide:4.15.0'

@@ -49,39 +49,39 @@ public class ImgTool {
             cameraPair = new Pair(cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED)),
                     cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA)));
         }
-        //检查Screenshots文件夹
-        Pair<Long, String> screenshotsPair = null;
-        //查询并排序
-        cursor = context.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                selection,
-                selectionArgsForScreenshots,
-                MediaStore.Files.FileColumns.DATE_MODIFIED + " DESC");
+//        //检查Screenshots文件夹
+//        Pair<Long, String> screenshotsPair = null;
+//        //查询并排序
+//        cursor = context.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+//                projection,
+//                selection,
+//                selectionArgsForScreenshots,
+//                MediaStore.Files.FileColumns.DATE_MODIFIED + " DESC");
 
-        if (cursor.moveToFirst()) {
-            screenshotsPair = new Pair(cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED)),
-                    cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA)));
-        }
+//        if (cursor.moveToFirst()) {
+//            screenshotsPair = new Pair(cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED)),
+//                    cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA)));
+//        }
         if (!cursor.isClosed()) {
             cursor.close();
         }
         //对比
-        if (cameraPair != null && screenshotsPair != null) {
-            if (cameraPair.first > screenshotsPair.first) {
-                screenshotsPair = null;
-                return cameraPair;
-            } else {
-                cameraPair = null;
-                return screenshotsPair;
-            }
-
-        } else if (cameraPair != null && screenshotsPair == null) {
-            return cameraPair;
-
-        } else if (cameraPair == null && screenshotsPair != null) {
-            return screenshotsPair;
-        }
-        return null;
+//        if (cameraPair != null && screenshotsPair != null) {
+//            if (cameraPair.first > screenshotsPair.first) {
+//                screenshotsPair = null;
+//                return cameraPair;
+//            } else {
+//                cameraPair = null;
+//                return screenshotsPair;
+//            }
+//
+//        } else if (cameraPair != null && screenshotsPair == null) {
+//            return cameraPair;
+//
+//        } else if (cameraPair == null && screenshotsPair != null) {
+//            return screenshotsPair;
+//        }
+        return cameraPair;
     }
 
     private static String getBucketId(String path) {

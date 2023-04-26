@@ -2,10 +2,12 @@ package com.nuist.cropscan;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.webkit.WebView;
 import android.widget.Toast;
 
 import androidx.fragment.app.FragmentTransaction;
@@ -18,6 +20,7 @@ import com.nuist.cropscan.request.FileConfig;
 import com.nuist.cropscan.request.HttpOk;
 import com.nuist.cropscan.tool.FileUtils;
 import com.nuist.cropscan.tool.LoadingDialogUtils;
+import com.nuist.cropscan.tool.LocalGps;
 import com.nuist.cropscan.tool.ZipUtils;
 
 import org.json.JSONObject;
@@ -29,21 +32,19 @@ public class ActWeb extends BaseAct {
 
 
     private void loadPage(int newVersion) {
-        if (!optString("user").isEmpty()) {
-            startActivity(new Intent(ActWeb.this, HomeAct.class));
-            finish();
-        }
+        setLightStatusBar(getWindow(), true, getResources().getColor(R.color.main));
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragWeb = new FragWeb(FileConfig.webFileHome(context));
         fragmentTransaction.replace(R.id.frame, fragWeb).commit();
         setInt(getResources().getString(R.string.web_version), newVersion);
+        int localVersion = optInt(getResources().getString(R.string.web_version));
+        Log.d(TAG, "localWebVersion: " + localVersion);
     }
 
     private void checkAppVersion(JSONObject o) throws Exception {
-        JSONObject androidJson = o.optJSONObject("Android");
         //获取软件版本号，对应AndroidManifest.xml下android:versionCode
         int versionCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
-        int netAppVersion = androidJson.optInt("VersionCode");
+        int netAppVersion = o.optInt("androidVersionCode");
         Log.d(TAG, "AppVersionCode: " + versionCode);
         Log.d(TAG, "netAppVersion: " + netAppVersion);
 
@@ -61,19 +62,16 @@ public class ActWeb extends BaseAct {
 
     private void checkWebVersion(JSONObject o) {
         int localVersion = optInt(getResources().getString(R.string.web_version));
-        JSONObject webJson = o.optJSONObject("Web");
-        int netVersion = webJson.optInt("Version");
+        int netVersion = o.optInt("webVersion");
         Log.d(TAG, "localWebVersion: " + localVersion);
         Log.d(TAG, "netVersion: " + netVersion);
         if (netVersion > localVersion) {
+            //清空已下载文件
             FileUtils.deleteDir(new File(getFilesDir().getAbsolutePath()));
-            String[] list = new File(getFilesDir().getAbsolutePath()).list();
-            for (String s : list) {
-                Log.d(TAG, "fileList: " + s);
-            }
-            String zipPath = getFilesDir().getAbsolutePath() + "/dist.zip";
+
+            String zipPath = getFilesDir().getAbsolutePath() + "/dist+" + netVersion + ".zip";
             DownLoadDialog downLoadDialog = new DownLoadDialog(context,
-                    BASEURL.entireHost + "/download/AppWeb",
+                    BASEURL.entireHost + "/static/mobile/android/dist.zip",
                     zipPath);
             downLoadDialog.show();
             downLoadDialog.setOnDismissListener(dialogInterface -> {
@@ -89,9 +87,10 @@ public class ActWeb extends BaseAct {
     }
 
     private void checkVersion() {
-        HttpOk.getInstance().to("/version", o -> {
-            checkAppVersion(o);
-            checkWebVersion(o);
+        HttpOk.getInstance().to("/version/latest", o -> {
+            JSONObject versionData = o.optJSONObject("data");
+            checkAppVersion(versionData);
+            checkWebVersion(versionData);
         });
     }
 
@@ -104,7 +103,11 @@ public class ActWeb extends BaseAct {
     @Override
     public void afterPermission() {
         super.afterPermission();
-        checkVersion();
+//        checkVersion();
+        new LocalGps(this);
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragWeb = new FragWeb(BASEURL.entireWebHost);
+        fragmentTransaction.replace(R.id.frame, fragWeb).commit();
     }
 
     // 第一次按下返回键的事件
@@ -112,7 +115,11 @@ public class ActWeb extends BaseAct {
 
     @Override
     public void onBackPressed() {
-        if (fragWeb.getWebView().getUrl().equals("file:///android_asset/dist/index.html#/main/home") || fragWeb.getWebView().getUrl().equals("file:///android_asset/dist/index.html#/main/mine")) {
+        WebView webView = fragWeb.getWebView();
+        Log.d(TAG, "onBackPressed: " + webView.getUrl());
+        if (webView.getUrl().equals("file://" + FileConfig.webFileHome(context) + "#/home")
+                || webView.getUrl().equals("file://" + FileConfig.webFileHome(context) + "#/login")) {
+            Log.d(TAG, "onBackPressed: 符合");
             if (System.currentTimeMillis() - firstPressedTime < 2000) {
                 super.onBackPressed();
             } else {
@@ -120,7 +127,7 @@ public class ActWeb extends BaseAct {
                 firstPressedTime = System.currentTimeMillis();
             }
         } else {
-            fragWeb.getWebView().loadUrl("javascript:backPressed()");
+            webView.loadUrl("javascript:backPressed()");
         }
     }
 }
