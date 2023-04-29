@@ -3,10 +3,8 @@ package com.nuist.cropscan.scan;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -21,13 +19,9 @@ import com.nuist.cropscan.ActPicture.ActCameraX;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.dialog.CropTipsDialog;
 import com.nuist.cropscan.dialog.LoadingDialogUtils;
-import com.nuist.cropscan.request.FileConfig;
 import com.nuist.cropscan.tool.LocalGps;
 import com.nuist.cropscan.tool.Tools;
-import com.nuist.cropscan.view.BoxImageView;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
+import com.nuist.cropscan.view.ScanLayout;
 
 /**
  * ->  tah9  2023/3/23 19:41
@@ -36,12 +30,21 @@ public class ActCropScan extends ActCameraX {
     private static final String TAG = "ActCropScan";
     public Context context = this;
     public LocalGps localGps;
-    public BoxImageView picMask;
+    public ScanLayout picMask;
     private CropTipsDialog cropTipsDialog;
     public RecyclerView recy_crop;
     private AppBarLayout barLayout;
     private AppBarLayout.Behavior behavior;
 
+//    @Override
+//    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+//        super.onConfigurationChanged(newConfig);
+//        Log.d(TAG, "onConfigurationChanged: " + newConfig);
+//        landscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
+//        toDisplayBottomDialog();
+//    }
+
+    private boolean landscape = false;
 
     @SuppressLint("WrongThread")
     @Override
@@ -54,7 +57,6 @@ public class ActCropScan extends ActCameraX {
 
         initView();
         localGps = new LocalGps(this);
-
 
     }
 
@@ -75,6 +77,7 @@ public class ActCropScan extends ActCameraX {
         findViewById(R.id.re_capture_btn).setOnClickListener(v -> {
             owner_layout.setVisibility(View.GONE);
             picMask.release();
+            recy_crop.setAdapter(null);
             preview.getCamera().open();
             toDisplayBottomDialog();
         });
@@ -97,6 +100,8 @@ public class ActCropScan extends ActCameraX {
             return false;
         }
     };
+
+    
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -122,6 +127,7 @@ public class ActCropScan extends ActCameraX {
         return super.dispatchTouchEvent(ev);
     }
 
+
     private boolean onDisplayBottomDialog = false;
 
     private void toDisplayBottomDialog() {
@@ -129,22 +135,46 @@ public class ActCropScan extends ActCameraX {
 
         //拍摄控制栏上移
         int recyHei = Tools.dpToPx(context, 120);
-        ObjectAnimator.ofFloat(bottomControllerLayout, "translationY", -recyHei).setDuration(durTime).start();
 
-        //展示底部弹窗
-        cropTipsDialog = new CropTipsDialog(this, new CropTipsDialog.windowDialogListener() {
-            @Override
-            public void onSelect(Bitmap bitmap) {
-                clickCapture(bitmap);
-            }
 
-            @Override
-            public void onDismiss() {
-                onDisplayBottomDialog = false;
-                //复原拍摄控制栏
-                ObjectAnimator.ofFloat(bottomControllerLayout, "translationY", -recyHei, 0).setDuration(durTime).start();
-            }
-        });
+        int orientation = getResources().getConfiguration().orientation;
+        Log.d(TAG, "toDisplayBottomDialog: " + orientation);
+//        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            ObjectAnimator.ofFloat(bottomControllerLayout, "translationY", -recyHei).setDuration(durTime).start();
+
+            //展示底部弹窗
+            cropTipsDialog = new CropTipsDialog(this, new CropTipsDialog.windowDialogListener() {
+                @Override
+                public void onSelect(Bitmap bitmap) {
+                    clickCapture(bitmap);
+                }
+
+                @Override
+                public void onDismiss() {
+                    onDisplayBottomDialog = false;
+                    //复原拍摄控制栏
+                    ObjectAnimator.ofFloat(bottomControllerLayout, "translationY", -recyHei, 0).setDuration(durTime).start();
+                }
+            });
+//        }
+//        else{
+//            ObjectAnimator.ofFloat(bottomControllerLayout, "translationX", -recyHei).setDuration(durTime).start();
+//
+//            //展示底部弹窗
+//            cropTipsDialog = new CropTipsDialog(this, new CropTipsDialog.windowDialogListener() {
+//                @Override
+//                public void onSelect(Bitmap bitmap) {
+//                    clickCapture(bitmap);
+//                }
+//
+//                @Override
+//                public void onDismiss() {
+//                    onDisplayBottomDialog = false;
+//                    //复原拍摄控制栏
+//                    ObjectAnimator.ofFloat(bottomControllerLayout, "translationX", -recyHei, 0).setDuration(durTime).start();
+//                }
+//            });
+//        }
         onDisplayBottomDialog = true;
     }
 

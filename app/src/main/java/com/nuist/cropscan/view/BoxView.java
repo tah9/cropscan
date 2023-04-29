@@ -10,12 +10,16 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.nuist.cropscan.R;
+import com.nuist.cropscan.scan.rule.CropConfig;
 import com.nuist.cropscan.view.entiry.TRect;
 
 /**
@@ -28,27 +32,55 @@ public class BoxView extends FrameLayout {
     private final String boxColor = "#ffffff";
     private final float boxLineWidth = 6f;
 
-    private final int iconWh = 130;
+    private final int iconWh = CropConfig.IconWH;
     private static final String TAG = "BoxView";
 
-    private final int aniDuration=1000;
+    private final int loadAniDuration = 1000;
+    private final int initViewAniDuration = 250;
+
+    private boolean beOpen = false;
+
+    public void setBeOpen(boolean beOpen) {
+        this.beOpen = beOpen;
+    }
+
+    public boolean isBeOpen() {
+        return beOpen;
+    }
+
+    private boolean load = false;
+
+    public boolean isLoad() {
+        return load;
+    }
+
+    public void setLoad(boolean load) {
+        this.load = load;
+    }
+
     private ImageView imageView;
 
     public BoxView(Context context, TRect rect) {
         super(context);
         this.rect = rect;
         init();
-        Log.d(TAG, "BoxView: ");
     }
-
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        if (getChildCount() == 0) {
+            return;
+        }
         Rect rec = rect.getRect();
         int l = ((int) ((rec.width() - iconWh) / 2f));
         int t = ((int) ((rec.height() - iconWh) / 2f));
         getChildAt(0).layout(l, t, l + iconWh, t + iconWh);
     }
+
+    public ImageView getImageView() {
+        return imageView;
+    }
+
 
     private void init() {
         setClipChildren(false);
@@ -60,14 +92,74 @@ public class BoxView extends FrameLayout {
 
         imageView = new ImageView(getContext());
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        imageView.setImageBitmap(getLoadBitmap());
         addView(imageView);
 
-//        startLoadAni();
+        iconBitmap = getIconBitmap();
+        loadBitmap = getLoadBitmap();
+
+        updateState();
     }
-    private ObjectAnimator startLoadAni(){
+
+
+    /*
+        按钮的几种状态：
+        1.显示与隐藏关键点：
+            -beOpen&&getName!=null
+            是否是选中框纽并且加载完成，是则隐藏按钮并拦截事件，否均显示
+        2.加载状态与默认状态关键点：
+            -isLoad&&getName==null
+            加载状态，其他均为默认状态
+            -getName==null||getName!=null
+            都是默认状态
+     */
+    public void updateState() {
+
+        if (isBeOpen() && rect.getName() != null) {
+            imageView.animate()
+                    .scaleX(0f)
+                    .scaleY(0f)
+                    .setDuration(initViewAniDuration)
+                    .withEndAction(() -> imageView.setVisibility(View.INVISIBLE));
+            return;
+        } else {
+            imageView.setVisibility(VISIBLE);
+        }
+
+        if (isLoad() && rect.getName() == null) {
+            imageView.setImageBitmap(loadBitmap);
+            this.loadAni = startLoadAni();
+        } else {
+            //清除动画
+            if (loadAni != null) {
+                loadAni.cancel();
+            }
+            imageView.setImageBitmap(iconBitmap);
+            imageView.setScaleX(0f);
+            imageView.setScaleY(0f);
+            imageView.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(initViewAniDuration);
+        }
+    }
+
+
+    public void release() {
+        this.loadBitmap.recycle();
+        this.loadBitmap = null;
+        this.iconBitmap.recycle();
+        this.iconBitmap = null;
+        rect.release();
+    }
+
+
+    private ObjectAnimator loadAni = null;
+
+    private Bitmap iconBitmap, loadBitmap;
+
+    private ObjectAnimator startLoadAni() {
         ObjectAnimator animator = ObjectAnimator.ofFloat(imageView, "rotation", 0f, 360f);
-        animator.setDuration(aniDuration);
+        animator.setDuration(loadAniDuration);
         animator.setRepeatCount(ValueAnimator.INFINITE);
         animator.setInterpolator(new LinearInterpolator());
         animator.start();
@@ -93,18 +185,17 @@ public class BoxView extends FrameLayout {
         Bitmap res = BitmapFactory.decodeResource(getResources(), R.drawable.crop_load);
         float scale = 1.2f;
         int iconWh = ((int) (res.getWidth() * scale));
-        Log.d(TAG, "getLoadBitmap: " + res);
         Bitmap bitmap = Bitmap.createBitmap(iconWh, iconWh, Bitmap.Config.ARGB_8888);
         // 创建一个Canvas对象，并将其与Bitmap关联
         Canvas canvas = new Canvas(bitmap);
         canvas.drawColor(Color.TRANSPARENT);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         //外圈半透明圆
-        paint.setColor(Color.parseColor("#4AFFFFFF"));
+        paint.setColor(Color.parseColor("#4A000000"));
         paint.setStyle(Paint.Style.FILL);
         canvas.drawCircle(iconWh / 2f, iconWh / 2f, iconWh / 2f, paint);
         paint.setColor(Color.WHITE);
-        canvas.drawBitmap(res, (iconWh-res.getWidth()) / 2f, (iconWh-res.getWidth()) / 2f, null);
+        canvas.drawBitmap(res, (iconWh - res.getWidth()) / 2f, (iconWh - res.getWidth()) / 2f, null);
         return bitmap;
     }
 

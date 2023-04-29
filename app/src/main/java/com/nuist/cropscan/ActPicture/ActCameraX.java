@@ -37,7 +37,7 @@ public abstract class ActCameraX extends BaseAct {
     public PreviewView cameraView;
     ImageCapture imageCapture;
     Camera camera;
-    private ImageView btnSwitchLens2;
+    private ImageView toGallertBtn;
 
     private ImageView btn_capture;
     private ImageView btnSwitchLens;
@@ -47,11 +47,19 @@ public abstract class ActCameraX extends BaseAct {
     public ConstraintLayout bottomControllerLayout;
     public FrameLayout owner_layout;
 
+    @SuppressLint("RestrictedApi")
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (owner_layout.getVisibility() == View.VISIBLE) {
+            preview.getCamera().close();
+        }
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 99) {
+        if (requestCode == 99 && data != null) {
             String path = data.getStringExtra("path");
             Log.d(TAG, "onActivityResult: " + path);
             CustomTarget<Bitmap> customTarget = new CustomTarget<Bitmap>() {
@@ -80,7 +88,7 @@ public abstract class ActCameraX extends BaseAct {
     //必须设置
     protected void initCameraX(int ownerViewLayout) {
 
-        ConstraintLayout root = (ConstraintLayout) LayoutInflater.from(context).inflate(R.layout.activity_act_camera_x, null);
+        ConstraintLayout root = (ConstraintLayout) LayoutInflater.from(context).inflate(R.layout.bak_activity_act_camera_x, null);
 
         if (ownerViewLayout != 0) {
             View ownerView = LayoutInflater.from(context).inflate(ownerViewLayout, null);
@@ -91,7 +99,7 @@ public abstract class ActCameraX extends BaseAct {
 
         initView();
 
-        Glide.with(btnSwitchLens2).load(ImgTool.getLatestPhoto(context).second).into(btnSwitchLens2);
+        Glide.with(toGallertBtn).load(ImgTool.getLatestPhoto(context).second).into(toGallertBtn);
 
         if (owner_layout.getVisibility() == View.GONE) {
 
@@ -163,8 +171,9 @@ public abstract class ActCameraX extends BaseAct {
         window.setNavigationBarColor(Color.TRANSPARENT);
         //这样的效果跟上述的主题设置效果类似
 
-        btnSwitchLens2 = findViewById(R.id.btn_switch_lens2);
-        btnSwitchLens2.setOnClickListener(view -> {
+        toGallertBtn = findViewById(R.id.btn_to_gallery);
+        toGallertBtn.bringToFront();
+        toGallertBtn.setOnClickListener(view -> {
             startActivityForResult(new Intent(ActCameraX.this, ActGallery.class), 99);
         });
         findViewById(R.id.back_btn).setOnClickListener(v -> {
@@ -191,5 +200,13 @@ public abstract class ActCameraX extends BaseAct {
 //        picMask = findViewById(R.id.pic_mask);
 
 
+    }
+
+    @Override
+    protected void sensorRotation(float v) {
+        super.sensorRotation(v);
+        if (toGallertBtn != null) {
+            toGallertBtn.setRotation(v);
+        }
     }
 }

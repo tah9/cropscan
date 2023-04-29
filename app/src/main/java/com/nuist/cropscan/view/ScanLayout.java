@@ -1,5 +1,6 @@
 package com.nuist.cropscan.view;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -8,10 +9,10 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -26,42 +27,47 @@ import java.util.List;
 /**
  * ->  tah9  2023/4/26 22:06
  */
-public class BoxImageView extends ViewGroup {
+public class ScanLayout extends ViewGroup {
 
     private Bitmap tempBitmap;
     private Canvas tempCanvas;
 
-    public BoxImageView(@NonNull Context context) {
+    public ScanLayout(@NonNull Context context) {
         super(context);
         init();
     }
 
-    public BoxImageView(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public ScanLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public BoxImageView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ScanLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
 
+    private final int cornerRadius = 25;
 
     private final float fontSize = 40f;
     private final String fontColor = "#000000";
     private final float fontWidth = 2f;
 
     private final String boxColor = "#ffffff";
-    private final float boxLineWidth = 6f;
+    private final float boxLineWidth = 8f;
+    private final int MaskColor = Color.parseColor("#99000000");
 
     //    Rect rect;
     Paint paint, textPaint, clipPaint;
-    Canvas canvas;
 
     List<TRect> rectList = new ArrayList<>();
     Bitmap sourceBitmap;
 
-    private int activateIndex = -1;
+    private int activateIndex = 0;
+
+    public int getActivateIndex() {
+        return activateIndex;
+    }
 
     private void init() {
         setClipChildren(false);
@@ -91,20 +97,21 @@ public class BoxImageView extends ViewGroup {
         }
     }
 
+    public BoxView getBoxViewAt(int index) {
+        return ((BoxView) getChildAt(index));
+    }
+
     public void setMask(Bitmap bitmap) {
         this.sourceBitmap = bitmap;
-
-        tempBitmap = sourceBitmap.copy(Bitmap.Config.ARGB_8888, true);
-        tempCanvas = new Canvas(tempBitmap);
-        //绘制半透黑遮罩
-        tempCanvas.drawColor(Color.parseColor("#70000000"));
-
-        setBackground(new BitmapDrawable(getResources(),bitmap));
+        setBackground(new BitmapDrawable(getResources(), bitmap));
     }
 
     public void release() {
         for (TRect tRect : rectList) {
             tRect.release();
+        }
+        for (int i = 0; i < getChildCount(); i++) {
+            getBoxViewAt(i).release();
         }
         rectList.clear();
         removeAllViews();
@@ -112,45 +119,82 @@ public class BoxImageView extends ViewGroup {
         setBackground(null);
     }
 
+    public interface TargetClickListener {
+        void targetClick(int position);
+    }
 
+    private TargetClickListener targetClickListener;
 
-    public void updateDraw(List<TRect> rectList) {
+    public void setTargetClickListener(TargetClickListener listener) {
+        this.targetClickListener = listener;
+    }
+
+    public void setList(List<TRect> rectList) {
         this.rectList = rectList;
-        for (TRect tRect : rectList) {
+        for (int i = 0; i < rectList.size(); i++) {
+            TRect tRect = rectList.get(i);
             BoxView boxView = new BoxView(getContext(), tRect);
+            int finalI = i;
+            //监听图片点击
+            boxView.getImageView().setOnClickListener(view -> {
+
+                //更新全局下标
+                this.activateIndex = finalI;
+                invalidate();
+                //监听回调
+                targetClickListener.targetClick(finalI);
+
+                //更新view
+                openChildAndUpdateState(finalI);
+            });
             addView(boxView);
         }
+        Log.d(TAG, "setList: " + getChildAt(0));
+        //默认自动识别首个
+        getBoxViewAt(0).getImageView().performClick();
+    }
+
+    private int preIndex = -1;
+
+    private void openChildAndUpdateState(int position) {
+        getBoxViewAt(position).setBeOpen(true);
+        getBoxViewAt(position).updateState();
+
+        if (preIndex != -1) {
+            getBoxViewAt(preIndex).setBeOpen(false);
+            getBoxViewAt(preIndex).updateState();
+
+        }
+        preIndex = position;
+    }
+
+    public void notifyItemLoadEnd(int position, TRect tRect) {
+        rectList.set(position, tRect);
+        getBoxViewAt(position).setLoad(false);
+        getBoxViewAt(position).updateState();
     }
 
 
+    @SuppressLint("DrawAllocation")
     @Override
     protected void onDraw(Canvas canvas) {
         if (rectList == null || rectList.size() == 0) {
             return;
         }
 
-        for (TRect tRect : rectList) {
-            Rect rect = tRect.getRect();
-            //绘制矩形线框
-            //手绘偏移
-//            paint.setPathEffect(new DiscretePathEffect(50, 10));
-            //清除区域遮罩
-            tempCanvas.drawRect(rect, clipPaint);
+        tempBitmap = sourceBitmap.copy(Bitmap.Config.ARGB_8888, true);
+        tempCanvas = new Canvas(tempBitmap);
+        //绘制半透黑遮罩
+        tempCanvas.drawColor(MaskColor);
 
-//            if (tRect.getName() != null) {
-//                paint.setStyle(Paint.Style.FILL);
-//                canvas.drawRect(rect.left + boxLineWidth / 2,
-//                        rect.top + boxLineWidth / 2,
-//                        rect.left + tRect.getName().length() * fontSize + fontSize,
-//                        rect.top + fontSize + boxLineWidth,
-//                        paint);
-//                paint.setStyle(Paint.Style.STROKE);
-//                Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
-//                float fontH = fontMetrics.bottom - fontMetrics.top;
-//                canvas.drawText(tRect.getName(), rect.left + fontSize / 2,
-//                        rect.top + fontH / 2 + boxLineWidth, textPaint);
-//            }
-        }
+        //绘制当前目标框
+        Rect rec = rectList.get(activateIndex).getRect();
+        RectF recF = new RectF(rec.left, rec.top, rec.right, rec.bottom);
+        canvas.drawRoundRect(recF, cornerRadius, cornerRadius, paint);
+
+        //清除区域遮罩
+        tempCanvas.drawRoundRect(recF, cornerRadius, cornerRadius, clipPaint);
+
         canvas.drawBitmap(tempBitmap, 0, 0, null);
     }
 

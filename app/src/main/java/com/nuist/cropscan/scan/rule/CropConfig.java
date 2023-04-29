@@ -1,4 +1,4 @@
-package com.nuist.cropscan.request;
+package com.nuist.cropscan.scan.rule;
 
 /**
  * ->  tah9  2023/4/29 15:51
@@ -11,5 +11,7 @@ public class CropConfig {
 
 
     //最多框选个数，减轻服务器识别压力
-    public static int MaxCropCount = 3;
+    public static int MaxCropCount = 9;
+
+    public static int IconWH = 130;
 }

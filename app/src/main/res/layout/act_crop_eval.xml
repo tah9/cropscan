@@ -20,7 +20,7 @@
             app:contentScrim="#80000000"
             app:layout_scrollFlags="scroll|snap|exitUntilCollapsed">
 
-            <com.nuist.cropscan.view.BoxImageView
+            <com.nuist.cropscan.view.ScanLayout
                 android:id="@+id/pic_mask"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -40,8 +40,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:background="@drawable/cir_bg"
-                android:paddingVertical="7.5dp"
-                android:paddingEnd="7.5dp" />
+                android:paddingVertical="5dp"
+                android:paddingEnd="5dp"
+                android:layout_marginRight="40dp" />
 
             <ImageView
                 android:id="@+id/re_capture_btn"

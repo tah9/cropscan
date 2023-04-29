@@ -10,7 +10,7 @@ import org.json.JSONObject;
  */
 public class TRect {
     Rect rect;
-    String name;
+    String name=null;
 
     public int left;
     public int right;
@@ -18,19 +18,27 @@ public class TRect {
     public int bottom;
     private Bitmap rectBitmap;
 
-    public void setRectBitmap(Bitmap bitmap){
+    public void setRectBitmap(Bitmap bitmap) {
         this.rectBitmap = Bitmap.createBitmap(bitmap, rect.left, rect.top, rect.width(), rect.height());
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        this.rectBitmap = bitmap;
     }
 
     public Bitmap getRectBitmap() {
         return rectBitmap;
     }
-    public void release(){
-        rectBitmap.recycle();
-        rectBitmap=null;
-        name=null;
-        rect=null;
+
+    public void release() {
+        if (rectBitmap != null) {
+            rectBitmap.recycle();
+            rectBitmap = null;
+        }
+        name = null;
+        rect = null;
     }
+
     public TRect(JSONObject o, String name) {
         int left = o.optInt("left");
         int top = o.optInt("top");

@@ -60,7 +60,7 @@ public class Tools {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Log.d(TAG, "getStatusBarHeight: " + statusBarHeight);
+//        Log.d(TAG, "getStatusBarHeight: " + statusBarHeight);
         return statusBarHeight;
     }
 

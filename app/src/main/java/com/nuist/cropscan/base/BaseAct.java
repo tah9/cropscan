@@ -1,21 +1,19 @@
 package com.nuist.cropscan.base;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.WebView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,15 +21,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.nuist.cropscan.R;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.AppSettingsDialog;
 import pub.devrel.easypermissions.EasyPermissions;
-import pub.devrel.easypermissions.PermissionRequest;
 
 public class BaseAct extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
     public Context context = this;
@@ -39,7 +33,9 @@ public class BaseAct extends AppCompatActivity implements EasyPermissions.Permis
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
 
-
+    private SensorManager sensorManager;
+    private Sensor rotationSensor;
+    private int samplingPeriodUs = 1500 * 1000 * 1000; // 采样周期，单位为微秒
 
     public void setString(String key, String value) {
         editor.putString(key, value).commit();
@@ -57,14 +53,56 @@ public class BaseAct extends AppCompatActivity implements EasyPermissions.Permis
         editor.putInt(key, value).commit();
     }
 
-    public void clearSp(){
+    public void clearSp() {
         int webVersion = optInt(getResources().getString(R.string.web_version));
         editor.clear().commit();
-        setInt(getResources().getString(R.string.web_version),webVersion);
+        setInt(getResources().getString(R.string.web_version), webVersion);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 注册方向传感器监听器
+        sensorManager.registerListener(sensorEventListener, rotationSensor, samplingPeriodUs,samplingPeriodUs);
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // 取消注册方向传感器监听器
+        sensorManager.unregisterListener(sensorEventListener);
+    }
+
+    protected void sensorRotation(float v) {
+
+    }
+
+    private SensorEventListener sensorEventListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            float[] rotationMatrix = new float[9];
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values);
+            float[] orientation = new float[3];
+            SensorManager.getOrientation(rotationMatrix, orientation);
+            float azimuthDegrees = (float) Math.toDegrees(orientation[0]);
+            Log.d(TAG, "onSensorChanged: " + azimuthDegrees);
+            sensorRotation(90-azimuthDegrees);
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            // 方向传感器精度变化时回调该方法
+//            Log.d(TAG, "onAccuracyChanged: ");
+        }
+    };
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+
         methodRequiresThreePermission();
         sharedPreferences = getSharedPreferences(getPackageName(), MODE_PRIVATE);
         editor = sharedPreferences.edit();

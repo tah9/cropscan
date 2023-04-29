@@ -16,9 +16,11 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom_controller_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/guideline2">
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/btn_capture"
@@ -27,7 +29,7 @@
             android:scaleType="fitCenter"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/cir2" />
 
 
@@ -37,23 +39,23 @@
             android:layout_height="80dp"
             android:padding="25dp"
             android:scaleType="centerCrop"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/btn_capture"
-            app:layout_constraintTop_toTopOf="@+id/btn_capture"
+            app:layout_constraintBottom_toTopOf="@+id/btn_capture"
+            app:layout_constraintEnd_toEndOf="@+id/btn_capture"
+            app:layout_constraintStart_toStartOf="@+id/btn_capture"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@android:drawable/stat_notify_sync" />
 
         <ImageView
-            android:id="@+id/btn_switch_lens2"
+            android:id="@+id/btn_to_gallery"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:background="#ffffff"
             android:padding="2dp"
             android:scaleType="centerCrop"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/btn_capture"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/btn_capture"
+            app:layout_constraintEnd_toEndOf="@+id/btn_capture"
+            app:layout_constraintStart_toStartOf="@+id/btn_capture"
+            app:layout_constraintTop_toBottomOf="@+id/btn_capture"
             app:srcCompat="@drawable/simple" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -62,27 +64,28 @@
         android:id="@+id/guideline2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         app:layout_constraintGuide_percent="0.88" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline3"
-        android:layout_width="wrap_content"
+    <com.nuist.cropscan.view.StatusBarView
+        android:id="@+id/statusBarView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.1" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:background="@drawable/back_btn"
         android:id="@+id/back_btn"
         android:layout_width="35dp"
         android:layout_height="35dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="15dp"
+        android:background="@drawable/back_btn"
         android:paddingVertical="8dp"
         android:paddingStart="-2dp"
-        android:layout_marginStart="15dp"
         android:src="@drawable/back"
-        app:layout_constraintBottom_toTopOf="@+id/guideline3"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/statusBarView" />
+
     <FrameLayout
         android:id="@+id/owner_layout"
         android:layout_width="match_parent"

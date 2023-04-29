@@ -3,9 +3,11 @@ package com.nuist.cropscan.request;
 import static com.nuist.cropscan.request.BASEURL.entireHost;
 
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -103,17 +105,19 @@ public class HttpOk {
         getTo(entireHost + url, HttpResult);
     }
 
-    public void postToOwnerUrl(JSONObject jsonObject, String url, HttpResult HttpResult) {
-        postTo(new Request.Builder().post(HttpOk.jsonBody(jsonObject)), url, HttpResult);
+    public Call postToOwnerUrl(JSONObject jsonObject, String url, HttpResult HttpResult) {
+        return postTo(new Request.Builder().post(HttpOk.jsonBody(jsonObject)), url, HttpResult);
     }
 
-    public void postToOtherUrl(JSONObject jsonObject, String url, HttpResult HttpResult) {
-        postTo(new Request.Builder().post(HttpOk.jsonBody(jsonObject)), url, HttpResult);
+    public Call postToOtherUrl(JSONObject jsonObject, String url, HttpResult HttpResult) {
+        return postTo(new Request.Builder().post(HttpOk.jsonBody(jsonObject)), url, HttpResult);
     }
 
-    private void postTo(Request.Builder builder, String url, HttpResult HttpResult) {
+    private Call postTo(Request.Builder builder, String url, HttpResult HttpResult) {
         Log.d(TAG, "postTo: " + url);
-        okHttpClient.newCall(builder.url(url).build()).enqueue(getNewCallBack(HttpResult));
+        Call call = okHttpClient.newCall(builder.url(url).build());
+        call.enqueue(getNewCallBack(HttpResult));
+        return call;
     }
 
     private void getTo(String url, HttpResult HttpResult) {
@@ -121,8 +125,6 @@ public class HttpOk {
         okHttpClient.newCall(new Request.Builder().url(url).build()).enqueue(getNewCallBack(HttpResult));
     }
 
-    private int failSum = 0;
-    private int MaxFailCount = 5;
 
     private Callback getNewCallBack(HttpResult toResult) {
         return new Callback() {
@@ -133,20 +135,27 @@ public class HttpOk {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                String json = response.body().string();
                 handler.post(() -> {
                     try {
-                        String json = response.body().string();
-                        JSONObject data = new JSONObject(json);
-                        toResult.promise(data);
+                        toResult.promise(new JSONObject(json));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d(TAG, "onResponse: json转化失败");
                     } catch (Exception e) {
-                        if (response.message().isEmpty() && failSum < MaxFailCount) {
-                            Log.d(TAG, "onResponse: 重试第" + failSum + "次");
-                            failSum++;
-                            call.clone().enqueue(getNewCallBack(toResult));
-                        } else {
-                            failSum = 0;
-                            Log.d(TAG, "onResponse: 重试依然失败 > "+call.request().url());
-                        }
+//                        e.printStackTrace();
+//                        if (response.code() == 200
+//                                && response.message().isEmpty()
+//                                && failSum < MaxFailCount) {
+//                            Log.d(TAG, "onResponse: 重试第" + (failSum++) + "次");
+//                            call.clone().enqueue(getNewCallBack(toResult));
+//                        } else {
+//                            failSum = 0;
+//                            Log.d(TAG, "onResponse: 5" + response);
+//                            Log.d(TAG, "onResponse: 6" + response.body());
+//                            Log.d(TAG, "onResponse: 7" + response.code());
+//                            Log.d(TAG, "onResponse: 重试依然失败 > " + call.request().url());
+//                        }
                         e.printStackTrace();
                     }
                 });

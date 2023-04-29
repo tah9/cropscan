@@ -2,6 +2,7 @@ package com.nuist.cropscan.dialog;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.Gravity;
@@ -48,8 +49,14 @@ public class CropTipsDialog {
         //设置对话框大小
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.show();
-        //设置弹出位置
-        window.setGravity(Gravity.BOTTOM);
+//        int orientation = activity.getResources().getConfiguration().orientation;
+//        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+//            //设置弹出位置
+            window.setGravity(Gravity.BOTTOM);
+//        } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+////            // 当前为横屏
+//            window.setGravity(Gravity.RIGHT);
+//        }
 
 
         RecyclerView tipRecy = root.findViewById(R.id.tip_recy);
