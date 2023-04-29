@@ -1,19 +1,9 @@
 package com.nuist.cropscan;
 
-import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.util.Log;
-import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -22,7 +12,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -31,17 +20,10 @@ import com.nuist.cropscan.base.BaseAct;
 import com.nuist.cropscan.request.BASEURL;
 import com.nuist.cropscan.request.HttpOk;
 import com.nuist.cropscan.scan.ActCropScan;
-import com.nuist.cropscan.tool.ImgTool;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -68,7 +50,7 @@ public class HomeAct extends BaseAct {
 
         initView();
         recy.setLayoutManager(new GridLayoutManager(context, 4));
-        HttpOk.getInstance().to("/plant/types", o -> {
+        HttpOk.getInstance().toOwnerUrl("/plant/types", o -> {
             JSONArray arr = o.optJSONArray("rows");
             recy.setAdapter(new RecyclerView.Adapter() {
                 @NonNull

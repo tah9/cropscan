@@ -12,14 +12,15 @@ import java.io.File;
  */
 public class BASEURL {
     private static final String TAG = "BASEURL";
-//        public static String ip = "http://192.168.43.205";
+    //        public static String ip = "http://192.168.43.205";
     public static String ip = "http://149.28.194.155";
     public static String servePort = "8087";
     public static String webPort = "9277";
-    public static String entireHost = ip + ":" + servePort+"/api";
+    public static String entireHost = ip + ":" + servePort + "/api";
 
     public static String entireWebHost = ip + ":" + webPort;
 
+    public static String flaskHost = "http://192.168.43.205:5000";
 
 
     public static String picUrl(Object name) {

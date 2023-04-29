@@ -32,7 +32,7 @@ public class BitmapUtil {
     }
     public static String bit2B64(Bitmap bitmap) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
         //安卓base64.default转义会创建大量换行符导致非安卓设备解码base64失败，no_wrap不会创建换行符
         return Base64.encodeToString(byteArray, Base64.NO_WRAP);

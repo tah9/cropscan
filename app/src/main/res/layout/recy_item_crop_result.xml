@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/item_crop_result"
+    android:layout_height="@dimen/item_crop_result"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardCornerRadius="5dp"
+    android:layout_marginStart="7.5dp"
+    android:padding="1dp"
+    android:layout_gravity="center_vertical"
+    app:cardBackgroundColor="#00000000"
+    tools:ignore="MissingDefaultResource">
+
+    <ImageView
+        android:id="@+id/pic"
+        android:layout_width="@dimen/item_crop_result"
+        android:layout_height="@dimen/item_crop_result"
+        android:scaleType="centerCrop" />
+</androidx.cardview.widget.CardView>

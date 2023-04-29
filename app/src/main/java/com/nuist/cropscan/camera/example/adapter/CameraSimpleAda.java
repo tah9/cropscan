@@ -48,7 +48,7 @@ public class CameraSimpleAda extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new RecyclerView.ViewHolder(LayoutInflater.from(context).inflate(R.layout.cameratip, null)) {
+        return new RecyclerView.ViewHolder(LayoutInflater.from(context).inflate(R.layout.recy_item_camera_bottom_tip, null)) {
         };
     }
 

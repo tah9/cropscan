@@ -13,6 +13,7 @@ import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.renderscript.Type;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.WindowManager;
 
 import androidx.camera.core.ImageProxy;
@@ -22,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -35,12 +37,45 @@ public class Tools {
         DisplayMetrics dm = new DisplayMetrics();
         wm.getDefaultDisplay().getMetrics(dm);
         int width = dm.widthPixels;// 屏幕宽度（像素）
-        int height = dm.heightPixels; // 屏幕高度（像素）
+//        int height = dm.heightPixels; // 屏幕高度（像素）
         int[] wh = new int[2];
         wh[0] = width;
-        wh[1] = height;
+//        wh[1] = height;
         return width;
     }
+
+    private static final String TAG = "Tools";
+
+    public static int fullScreenHeight(Context context){
+        return getStatusBarHeight(context) + getHeight(context);
+    }
+    public static int getStatusBarHeight(Context context) {
+        int statusBarHeight = 0;
+        try {
+            Class<?> c = Class.forName("com.android.internal.R$dimen");
+            Object object = c.newInstance();
+            Field field = c.getField("status_bar_height");
+            int x = (Integer) field.get(object);
+            statusBarHeight = context.getResources().getDimensionPixelSize(x);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, "getStatusBarHeight: " + statusBarHeight);
+        return statusBarHeight;
+    }
+
+    public static int getHeight(Context context) {
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics dm = new DisplayMetrics();
+        wm.getDefaultDisplay().getMetrics(dm);
+//        int width = dm.widthPixels;// 屏幕宽度（像素）
+        int height = dm.heightPixels; // 屏幕高度（像素）
+        int[] wh = new int[2];
+//        wh[0] = width;
+        wh[1] = height;
+        return height;
+    }
+
     /**
      * 根据手机的分辨率从 dp(相对大小) 的单位 转成为 px(像素)
      */
@@ -158,8 +193,8 @@ public class Tools {
     }
 
 
-    public static String saveBitmapFile(Context context,Bitmap bitmap) {
-        File file = new File(context.getCacheDir().getAbsolutePath()+"/"+System.currentTimeMillis()+".jpg");//将要保存图片的路径
+    public static String saveBitmapFile(Context context, Bitmap bitmap) {
+        File file = new File(context.getCacheDir().getAbsolutePath() + "/" + System.currentTimeMillis() + ".jpg");//将要保存图片的路径
         try {
             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bos);

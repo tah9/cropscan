@@ -1,7 +1,6 @@
 package com.nuist.cropscan.base;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -13,16 +12,14 @@ import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.nuist.cropscan.ActWeb;
-import com.nuist.cropscan.HomeAct;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.scan.ActCropScan;
-import com.nuist.cropscan.tool.LoadingDialogUtils;
+import com.nuist.cropscan.dialog.LoadingDialogUtils;
 
 import org.json.JSONObject;
 

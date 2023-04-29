@@ -31,17 +31,17 @@ public class HttpOk {
     private final Handler handler;
     private final OkHttpClient okHttpClient;
 
+    private int MAX_TIME = 600;
 
     public HttpOk() {
         handler = new Handler(Looper.getMainLooper());
-        okHttpClient = new OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS) //连接超时
-                .readTimeout(20, TimeUnit.SECONDS) //读取超时
-                .writeTimeout(20, TimeUnit.SECONDS) //写超时;
-                .callTimeout(20, TimeUnit.SECONDS) //写超时;
+        okHttpClient = new OkHttpClient.Builder().connectTimeout(MAX_TIME, TimeUnit.SECONDS) //连接超时
+                .readTimeout(MAX_TIME, TimeUnit.SECONDS) //读取超时
+                .writeTimeout(MAX_TIME, TimeUnit.SECONDS) //写超时;
+                .callTimeout(MAX_TIME, TimeUnit.SECONDS) //写超时;
                 .build();
     }
 
-    Request.Builder builder;
 
     public static HttpOk getInstance() {
         if (httpOk == null) {
@@ -50,18 +50,8 @@ public class HttpOk {
         return httpOk;
     }
 
-    public interface back {
-        void back(JSONObject o) throws Exception;
-    }
-
-    public HttpOk setBuilder(Request.Builder builder) {
-        this.builder = builder;
-        return this;
-    }
-
-    public HttpOk setPost(Map<String, Object> map) {
-        this.builder = new Request.Builder().post(HttpOk.jsonBody(map));
-        return this;
+    public interface HttpResult {
+        void promise(JSONObject o) throws Exception;
     }
 
 
@@ -71,15 +61,15 @@ public class HttpOk {
             fm.addFormDataPart(key, map.get(key));
         }
         File file = new File(path);
-        this.builder = new Request.Builder().post(
-                fm.addFormDataPart(fileKey, file.getName(),
-                        RequestBody.create(MediaType.parse("image/jpg"), file)).build());
+//        this.builder = new Request.Builder().post(
+//                fm.addFormDataPart(fileKey, file.getName(),
+//                        RequestBody.create(MediaType.parse("image/jpg"), file)).build());
         return this;
     }
 
 
-    public static RequestBody jsonBody(Map<String, Object> map) {
-        return RequestBody.create(MediaType.parse("application/json;charset=utf-8"), new JSONObject(map).toString());
+    public static RequestBody jsonBody(JSONObject jsonObject) {
+        return RequestBody.create(MediaType.parse("application/json;charset=utf-8"), jsonObject.toString());
     }
 
     //x-www-form-urlencoded
@@ -87,24 +77,11 @@ public class HttpOk {
 //
 //    }
 
-    void setback(String last, String json, back back) {
-        handler.post(() -> {
-            try {
-                JSONObject data = new JSONObject(json);
-                back.back(data);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
 
     /*
     百度智能云接口
      */
-    public void toBDApi(String url, String token, String base64, back back) {
-        OkHttpClient client = new OkHttpClient().newBuilder()
-                .build();
+    public void toBDApi(String url, String token, String base64, HttpResult HttpResult) {
         MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
         RequestBody body = RequestBody.create(mediaType, "image=" + base64);
 //        Log.d(TAG, "baidu to: " + url);
@@ -114,45 +91,68 @@ public class HttpOk {
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .addHeader("Accept", "application/json")
                 .build();
-        client.newCall(request).enqueue(new Callback() {
+        this.okHttpClient.newCall(request).enqueue(getNewCallBack(HttpResult));
+    }
+
+
+    public void toOtherUrl(String url, HttpResult HttpResult) {
+        getTo(url, HttpResult);
+    }
+
+    public void toOwnerUrl(String url, HttpResult HttpResult) {
+        getTo(entireHost + url, HttpResult);
+    }
+
+    public void postToOwnerUrl(JSONObject jsonObject, String url, HttpResult HttpResult) {
+        postTo(new Request.Builder().post(HttpOk.jsonBody(jsonObject)), url, HttpResult);
+    }
+
+    public void postToOtherUrl(JSONObject jsonObject, String url, HttpResult HttpResult) {
+        postTo(new Request.Builder().post(HttpOk.jsonBody(jsonObject)), url, HttpResult);
+    }
+
+    private void postTo(Request.Builder builder, String url, HttpResult HttpResult) {
+        Log.d(TAG, "postTo: " + url);
+        okHttpClient.newCall(builder.url(url).build()).enqueue(getNewCallBack(HttpResult));
+    }
+
+    private void getTo(String url, HttpResult HttpResult) {
+        Log.d(TAG, "getTo: " + url);
+        okHttpClient.newCall(new Request.Builder().url(url).build()).enqueue(getNewCallBack(HttpResult));
+    }
+
+    private int failSum = 0;
+    private int MaxFailCount = 5;
+
+    private Callback getNewCallBack(HttpResult toResult) {
+        return new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
-//                    setback(url, "", back);
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                setback(url, response.body().string(), back);
+                handler.post(() -> {
+                    try {
+                        String json = response.body().string();
+                        JSONObject data = new JSONObject(json);
+                        toResult.promise(data);
+                    } catch (Exception e) {
+                        if (response.message().isEmpty() && failSum < MaxFailCount) {
+                            Log.d(TAG, "onResponse: 重试第" + failSum + "次");
+                            failSum++;
+                            call.clone().enqueue(getNewCallBack(toResult));
+                        } else {
+                            failSum = 0;
+                            Log.d(TAG, "onResponse: 重试依然失败 > "+call.request().url());
+                        }
+                        e.printStackTrace();
+                    }
+                });
             }
-        });
+        };
     }
 
-    public void to(String url, back back) {
-        try {
-            String wholeUrl = entireHost + url;
-            Log.d(TAG, "to: " + wholeUrl);
-            if (builder == null) {
-                builder = new Request.Builder();
-            }
-            okHttpClient.newCall(builder.url(wholeUrl)
-//                    .addHeader("Authorization", "APPCODE b814b598bc66459eba5923357b18bba0")
-                            .build()
-            ).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    e.printStackTrace();
-//                    setback(url, "", back);
-                }
 
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    setback(wholeUrl, response.body().string(), back);
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-//            setback(url, "", back);
-        }
-    }
 }

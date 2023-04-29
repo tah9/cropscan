@@ -1,4 +1,4 @@
-package com.nuist.cropscan.tool;
+package com.nuist.cropscan.dialog;
 
 /**
  * ->  tah9  2023/4/6 5:19

@@ -1,44 +1,33 @@
 package com.nuist.cropscan.scan;
 
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Handler;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.os.Bundle;
 import android.util.Log;
-import android.util.Pair;
-import android.webkit.JavascriptInterface;
-import android.widget.Toast;
+import android.view.MotionEvent;
+import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.appbar.AppBarLayout;
 import com.nuist.cropscan.ActPicture.ActCameraX;
-import com.nuist.cropscan.HomeAct;
 import com.nuist.cropscan.R;
-import com.nuist.cropscan.base.FragWeb;
-import com.nuist.cropscan.request.HttpOk;
-import com.nuist.cropscan.tool.BitmapTool;
-import com.nuist.cropscan.tool.BitmapUtil;
-import com.nuist.cropscan.tool.FileUtils;
-import com.nuist.cropscan.tool.ImgTool;
+import com.nuist.cropscan.dialog.CropTipsDialog;
+import com.nuist.cropscan.dialog.LoadingDialogUtils;
+import com.nuist.cropscan.request.FileConfig;
 import com.nuist.cropscan.tool.LocalGps;
 import com.nuist.cropscan.tool.Tools;
-import com.nuist.cropscan.tool.LoadingDialogUtils;
+import com.nuist.cropscan.view.BoxImageView;
 
-import org.json.JSONObject;
-
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 /**
  * ->  tah9  2023/3/23 19:41
@@ -46,48 +35,143 @@ import okhttp3.Response;
 public class ActCropScan extends ActCameraX {
     private static final String TAG = "ActCropScan";
     public Context context = this;
-    private LocalGps localGps;
+    public LocalGps localGps;
+    public BoxImageView picMask;
+    private CropTipsDialog cropTipsDialog;
+    public RecyclerView recy_crop;
+    private AppBarLayout barLayout;
+    private AppBarLayout.Behavior behavior;
 
+
+    @SuppressLint("WrongThread")
     @Override
-    protected void onCameraCreate() {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         Log.d(TAG, "onCameraCreate: ");
-        openCamera();
+        picMaskHei = (int) (Tools.fullScreenHeight(context) * 0.75f - Tools.dpToPx(context, 50));
+
+        initCameraX(R.layout.act_crop_eval);
+
+        initView();
         localGps = new LocalGps(this);
+
+
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        cropTipsDialog.toDismiss();
+    }
+
+
+    @SuppressLint("RestrictedApi")
+    private void initView() {
+        barLayout = findViewById(R.id.barLayout);
+
+        picMask = findViewById(R.id.pic_mask);
+        recy_crop = findViewById(R.id.recy_crop);
+        owner_layout.setVisibility(View.GONE);
+        findViewById(R.id.re_capture_btn).setOnClickListener(v -> {
+            owner_layout.setVisibility(View.GONE);
+            picMask.release();
+            preview.getCamera().open();
+            toDisplayBottomDialog();
+        });
+        toDisplayBottomDialog();
+
+
+    }
+
+    int picMaskHei;
+    int barVerticalOffset;
+    AppBarLayout.Behavior.DragCallback canDragCallBack = new AppBarLayout.Behavior.DragCallback() {
+        @Override
+        public boolean canDrag(@NonNull AppBarLayout appBarLayout) {
+            return true;
+        }
+    };
+    AppBarLayout.Behavior.DragCallback unCanDragCallBack = new AppBarLayout.Behavior.DragCallback() {
+        @Override
+        public boolean canDrag(@NonNull AppBarLayout appBarLayout) {
+            return false;
+        }
+    };
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+
+        barLayout.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
+            barVerticalOffset = verticalOffset;
+        });
+        float rawY = ev.getRawY();
+
+        if (behavior == null) {
+            CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) barLayout.getLayoutParams();
+            behavior = (AppBarLayout.Behavior) layoutParams.getBehavior();
+            if (behavior == null) {
+                layoutParams.setBehavior(new AppBarLayout.Behavior());
+                behavior = (AppBarLayout.Behavior) layoutParams.getBehavior();
+            }
+        }
+        if (rawY <= picMaskHei && barVerticalOffset == 0) {
+            behavior.setDragCallback(unCanDragCallBack);
+        } else if (rawY > picMaskHei) {
+            behavior.setDragCallback(canDragCallBack);
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    private boolean onDisplayBottomDialog = false;
+
+    private void toDisplayBottomDialog() {
+        long durTime = 500;
+
+        //拍摄控制栏上移
+        int recyHei = Tools.dpToPx(context, 120);
+        ObjectAnimator.ofFloat(bottomControllerLayout, "translationY", -recyHei).setDuration(durTime).start();
+
+        //展示底部弹窗
+        cropTipsDialog = new CropTipsDialog(this, new CropTipsDialog.windowDialogListener() {
+            @Override
+            public void onSelect(Bitmap bitmap) {
+                clickCapture(bitmap);
+            }
+
+            @Override
+            public void onDismiss() {
+                onDisplayBottomDialog = false;
+                //复原拍摄控制栏
+                ObjectAnimator.ofFloat(bottomControllerLayout, "translationY", -recyHei, 0).setDuration(durTime).start();
+            }
+        });
+        onDisplayBottomDialog = true;
+    }
+
+
+    @Override
     public void onBackPressed() {
+        finish();
         LoadingDialogUtils.dismiss();
     }
 
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void clickCapture(Bitmap bitmap) {
-        try {
-            LoadingDialogUtils.show(this, false);
-            picMask.setImageBitmap(bitmap);
-            String base64 = BitmapUtil.bit2B64(bitmap);
-            base64 = URLEncoder.encode(base64, StandardCharsets.UTF_8.toString());
+        //关闭摄像头
+        preview.getCamera().close();
 
-            HttpOk.getInstance().toBDApi("https://aip.baidubce.com/rest/2.0/image-classify/v1/object_detect",
-                    "24.9cec12da92453b98fbfa79dca02fac64.2592000.1685101380.282335-32587397",
-                    base64, o -> {
-                        JSONObject result = o.optJSONObject("result");
-                        tipTv.setText(result.toString()
-                                +"\nweight:"+bitmap.getWidth()+",height:"+bitmap.getHeight()
-                        +"screen width:"+Tools.getWidth(context));
-                        Log.d(TAG, "toBDApi: " + result);
-                        picMask.drawRect(result);
-                    });
-            JSONObject object = new JSONObject();
-            object.put("BASE64", BitmapUtil.bit2B64(bitmap));
-            object.put("longitude", localGps.getLocal().optString("longitude"));
-            object.put("latitude", localGps.getLocal().optString("latitude"));
-            String json = object.toString();
-//            Log.d(TAG, "clickCapture: "+json);
-//            FragWeb.getWebView().loadUrl("javascript:toEvalImg('" + json + "')");
-        } catch (Exception e) {
+        //隐藏底部弹窗
+        if (onDisplayBottomDialog) cropTipsDialog.toDismiss();
 
-        }
+        //显示协调布局
+        owner_layout.setVisibility(View.VISIBLE);
+
+        //交给验证类处理
+        CropEval cropEval = new CropEval(context, this, bitmap);
+        cropEval.beginProcess();
+
     }
+
 }

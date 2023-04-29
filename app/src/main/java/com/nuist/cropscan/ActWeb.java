@@ -1,8 +1,6 @@
 package com.nuist.cropscan;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,7 +17,7 @@ import com.nuist.cropscan.request.BASEURL;
 import com.nuist.cropscan.request.FileConfig;
 import com.nuist.cropscan.request.HttpOk;
 import com.nuist.cropscan.tool.FileUtils;
-import com.nuist.cropscan.tool.LoadingDialogUtils;
+import com.nuist.cropscan.dialog.LoadingDialogUtils;
 import com.nuist.cropscan.tool.LocalGps;
 import com.nuist.cropscan.tool.ZipUtils;
 
@@ -87,7 +85,7 @@ public class ActWeb extends BaseAct {
     }
 
     private void checkVersion() {
-        HttpOk.getInstance().to("/version/latest", o -> {
+        HttpOk.getInstance().toOwnerUrl("/version/latest", o -> {
             JSONObject versionData = o.optJSONObject("data");
             checkAppVersion(versionData);
             checkWebVersion(versionData);
