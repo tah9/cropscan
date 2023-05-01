@@ -25,7 +25,11 @@ import org.json.JSONArray;
  */
 public class CropTipsDialog {
     private static final String TAG = "CropTipsDialog";
-    private final Dialog dialog;
+    public final Dialog dialog;
+    public JSONArray rows;
+    public LinearLayoutManager linearLayoutManager;
+    public RecyclerView tipRecy;
+    public CameraSimpleAda cameraSimpleAda;
 
     private windowDialogListener listener;
 
@@ -52,14 +56,14 @@ public class CropTipsDialog {
 //        int orientation = activity.getResources().getConfiguration().orientation;
 //        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
 //            //设置弹出位置
-            window.setGravity(Gravity.BOTTOM);
+        window.setGravity(Gravity.BOTTOM);
 //        } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
 ////            // 当前为横屏
 //            window.setGravity(Gravity.RIGHT);
 //        }
 
 
-        RecyclerView tipRecy = root.findViewById(R.id.tip_recy);
+        tipRecy = root.findViewById(R.id.tip_recy);
 
         root.findViewById(R.id.slide_btn).setOnClickListener(v -> {
             dialog.dismiss();
@@ -67,13 +71,16 @@ public class CropTipsDialog {
         });
         HttpOk.getInstance().toOwnerUrl("/simpleImg", o -> {
             Log.d(TAG, "CropTipsDialog: " + o);
-            JSONArray rows = o.optJSONArray("rows");
+            rows = o.optJSONArray("rows");
             if (rows != null && rows.length() != 0) {
-                tipRecy.setLayoutManager(new LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false));
-                tipRecy.setAdapter(new CameraSimpleAda(activity, rows).setOnClickSimPic(resource -> {
+                linearLayoutManager = new LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false);
+                tipRecy.setLayoutManager(linearLayoutManager);
+
+                cameraSimpleAda = new CameraSimpleAda(activity, rows).setOnClickSimPic(resource -> {
                     dialog.dismiss();
                     listener.onSelect(resource);
-                }));
+                });
+                tipRecy.setAdapter(cameraSimpleAda);
             }
         });
     }

@@ -3,8 +3,6 @@ package com.nuist.cropscan.tool;
 import static android.content.Context.LOCATION_SERVICE;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -31,33 +29,45 @@ import java.util.List;
 public class LocalGps {
     private static final String TAG = "LocalGps";
     private LocationManager locationManager;
-    public BaseAct context;
+    private BaseAct context;
 
-    public JSONObject getLocal() {
-        return localJson;
+    public void requestLocal() {
+        if (!isLocationProviderEnabled()) {
+            openLocationServer();
+        }
+        initLocationListener();
     }
-    private JSONObject localJson;
+
     private void setLocal(Address address) {
         try {
             JSONObject localJSON = new JSONObject();
             localJSON.put("name", address.getAddressLine(0));
             localJSON.put("latitude", String.valueOf(address.getLatitude()));
             localJSON.put("longitude", String.valueOf(address.getLongitude()));
-            this.localJson=localJSON;
-            Log.d(TAG, "getAddress: JSONObject" + localJSON);
             context.setString("local", localJSON.toString());
             Log.d(TAG, "getAddress: " + localJSON);
+            if (listener != null) {
+                listener.updateLocal(localJSON);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+
     public LocalGps(BaseAct context) {
         this.context = context;
-        if (!isLocationProviderEnabled()) {
-            openLocationServer();
-        }
-        initLocationListener();
+        requestLocal();
+    }
+
+    public interface LocalListener {
+        void updateLocal(JSONObject jsonObject);
+    }
+
+    private LocalListener listener;
+
+    public void setListener(LocalListener listener) {
+        this.listener = listener;
     }
 
     /**
@@ -156,10 +166,7 @@ public class LocalGps {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        locationManager
-                .requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 10, mLocationListener);
-        locationManager
-                .requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, mLocationListener);
-
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 100, 10, mLocationListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 10, mLocationListener);
     }
 }

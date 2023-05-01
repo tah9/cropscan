@@ -28,6 +28,7 @@ public class CropResultAdapter extends RecyclerView.Adapter {
     private int activateIndex;
     private int preIndex;
 
+
     public CropResultAdapter(List<TRect> rectList, Context context, int activateIndex) {
         this.rectList = rectList;
         this.context = context;
@@ -54,10 +55,11 @@ public class CropResultAdapter extends RecyclerView.Adapter {
         FrameLayout layoutView = (FrameLayout) holder.itemView;
         ImageView pic = layoutView.findViewById(R.id.pic);
         Glide.with(pic).load(rectList.get(position).getRectBitmap()).into(pic);
-
         if (position == activateIndex) {
+            ((CardView) layoutView.getChildAt(0)).setCardBackgroundColor(Color.BLACK);
             layoutView.setBackgroundResource(R.drawable.item_scan_card);
         } else {
+            ((CardView) layoutView.getChildAt(0)).setCardBackgroundColor(Color.TRANSPARENT);
             layoutView.setBackground(null);
         }
     }

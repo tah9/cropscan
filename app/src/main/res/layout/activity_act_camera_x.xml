@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".ActPicture.ActCameraX">
 
-
     <androidx.camera.view.PreviewView
         android:id="@+id/act_cameraTest_pv_cameraPreview"
         android:layout_width="match_parent"
@@ -16,11 +15,10 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom_controller_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        app:layout_constraintBottom_toTopOf="@+id/guideline2">
 
         <ImageView
             android:id="@+id/btn_capture"
@@ -29,7 +27,7 @@
             android:scaleType="fitCenter"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/cir2" />
 
 
@@ -39,24 +37,39 @@
             android:layout_height="80dp"
             android:padding="25dp"
             android:scaleType="centerCrop"
-            app:layout_constraintBottom_toTopOf="@+id/btn_capture"
-            app:layout_constraintEnd_toEndOf="@+id/btn_capture"
-            app:layout_constraintStart_toStartOf="@+id/btn_capture"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/btn_capture"
+            app:layout_constraintTop_toTopOf="@+id/btn_capture"
             app:srcCompat="@android:drawable/stat_notify_sync" />
 
-        <ImageView
-            android:id="@+id/btn_to_gallery"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:background="#ffffff"
-            android:padding="2dp"
-            android:scaleType="centerCrop"
+        <androidx.cardview.widget.CardView
+            android:layout_width="47dp"
+            android:layout_height="47dp"
+            app:cardCornerRadius="60dp"
+            android:padding="1dp"
+            app:cardBackgroundColor="#ffffff"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/btn_capture"
-            app:layout_constraintStart_toStartOf="@+id/btn_capture"
-            app:layout_constraintTop_toBottomOf="@+id/btn_capture"
-            app:srcCompat="@drawable/simple" />
+            app:layout_constraintEnd_toStartOf="@+id/btn_capture"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/btn_capture">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="center"
+                app:cardCornerRadius="100dp">
+
+                <ImageView
+                    android:id="@+id/btn_to_gallery"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    app:srcCompat="@drawable/simple" />
+            </androidx.cardview.widget.CardView>
+
+        </androidx.cardview.widget.CardView>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -64,8 +77,9 @@
         android:id="@+id/guideline2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.88" />
+
 
     <com.nuist.cropscan.view.StatusBarView
         android:id="@+id/statusBarView"

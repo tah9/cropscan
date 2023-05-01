@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-   >
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
     <corners android:radius="10dp" />
 <!--    <stroke-->
-<!--        android:color="#DDEFE3"-->
-<!--        android:width="2dp"/> -->
-    <solid android:color="#99000000"/>
+<!--        android:width="2dp"-->
+<!--        android:color="#DDEFE3" />-->
+    <solid android:color="#60118b80" />
     <size
         android:width="40dp"
-        android:height="40dp"/>
-<!--    <size android:width="80dp" android:height="40dp"/>-->
+        android:height="40dp" />
+    <!--    <size android:width="80dp" android:height="40dp"/>-->
 </shape>

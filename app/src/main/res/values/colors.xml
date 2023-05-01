@@ -10,4 +10,13 @@
     <color name="main">#f9ece4</color>
     <color name="main2">#e4935c</color>
     <color name="frame">#0af0f1</color>
+    <color name="web_bg">#3c3f41</color>
+    <color name="colorHint">#C2D2DD</color>
+    <color name="dark">#000000</color>
+
+    <color name="btn">#0058db</color>
+    <!--透明-->
+    <color name="transparent">#00000000</color>
+    <!--半透明-->
+    <color name="translucent">#22050505</color>
 </resources>

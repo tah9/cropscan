@@ -4,13 +4,12 @@ plugins {
 
 android {
     compileSdk 33
-    aaptOptions.cruncherEnabled = false;
-    aaptOptions.useNewCruncher = false;
+     aaptOptions.cruncherEnabled = false;
+     aaptOptions.useNewCruncher = false;
 
     defaultConfig {
         applicationId "com.nuist.cropscan"
         minSdk 21
-        //noinspection ExpiredTargetSdkVersion
         targetSdk 28
         versionCode 4
         versionName "2.3.3"
@@ -55,7 +54,9 @@ dependencies {
     implementation files('libs\\okhttp-3.12.0.jar')
     implementation files('libs\\okio-1.15.0.jar')
 
-    implementation 'me.laoyuyu.aria:core:3.8.16'//下载器
+    implementation 'me.laoyuyu.aria:core:3.8.16'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'//下载器
     annotationProcessor 'me.laoyuyu.aria:compiler:3.8.16'
 
 

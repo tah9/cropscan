@@ -1,10 +1,12 @@
 package com.nuist.cropscan.camera.example.adapter;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
@@ -17,8 +19,13 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.request.BASEURL;
+import com.nuist.cropscan.tool.AniUtils;
+import com.nuist.cropscan.tool.Tools;
 
 import org.json.JSONArray;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ->  tah9  2023/4/26 20:17
@@ -34,6 +41,7 @@ public class CameraSimpleAda extends RecyclerView.Adapter {
         this.rows = rows;
     }
 
+
     public interface ClickSimPic {
         void getPic(Bitmap resource);
     }
@@ -47,18 +55,19 @@ public class CameraSimpleAda extends RecyclerView.Adapter {
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new RecyclerView.ViewHolder(LayoutInflater.from(context).inflate(R.layout.recy_item_camera_bottom_tip, null)) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i) {
+        View view = LayoutInflater.from(context).inflate(R.layout.recy_item_camera_bottom_tip, null);
+        return new RecyclerView.ViewHolder(view) {
         };
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+
         ImageView pic = holder.itemView.findViewById(R.id.pic);
         String imgPath = BASEURL.entireHost + "/static/simpleImg/" + rows.optString(position);
         Glide.with(pic).load(imgPath).into(pic);
-        Log.d(TAG, "onBindViewHolder: " + BASEURL.entireHost + "/static/simpleImg/" + rows.optString(position));
-        holder.itemView.setOnClickListener(view -> {
+        holder.itemView.setOnClickListener(v -> {
             Glide.with(context).asBitmap().load(imgPath).into(new CustomTarget<Bitmap>() {
                 @Override
                 public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {

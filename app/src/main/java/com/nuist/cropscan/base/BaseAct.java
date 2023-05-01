@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -33,9 +34,6 @@ public class BaseAct extends AppCompatActivity implements EasyPermissions.Permis
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
 
-    private SensorManager sensorManager;
-    private Sensor rotationSensor;
-    private int samplingPeriodUs = 1500 * 1000 * 1000; // 采样周期，单位为微秒
 
     public void setString(String key, String value) {
         editor.putString(key, value).commit();
@@ -59,50 +57,11 @@ public class BaseAct extends AppCompatActivity implements EasyPermissions.Permis
         setInt(getResources().getString(R.string.web_version), webVersion);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // 注册方向传感器监听器
-        sensorManager.registerListener(sensorEventListener, rotationSensor, samplingPeriodUs,samplingPeriodUs);
-    }
-
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // 取消注册方向传感器监听器
-        sensorManager.unregisterListener(sensorEventListener);
-    }
-
-    protected void sensorRotation(float v) {
-
-    }
-
-    private SensorEventListener sensorEventListener = new SensorEventListener() {
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            float[] rotationMatrix = new float[9];
-            SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values);
-            float[] orientation = new float[3];
-            SensorManager.getOrientation(rotationMatrix, orientation);
-            float azimuthDegrees = (float) Math.toDegrees(orientation[0]);
-            Log.d(TAG, "onSensorChanged: " + azimuthDegrees);
-            sensorRotation(90-azimuthDegrees);
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-            // 方向传感器精度变化时回调该方法
-//            Log.d(TAG, "onAccuracyChanged: ");
-        }
-    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-
+        setLightStatusBar(getWindow(),false, Color.TRANSPARENT);
         methodRequiresThreePermission();
         sharedPreferences = getSharedPreferences(getPackageName(), MODE_PRIVATE);
         editor = sharedPreferences.edit();
@@ -144,7 +103,10 @@ public class BaseAct extends AppCompatActivity implements EasyPermissions.Permis
     }
 
     public static final int RC_CAMERA_FILE_LOCATION = 1; // requestCode
-    String[] perms = {Manifest.permission.CAMERA, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    String[] perms = {Manifest.permission.CAMERA,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     public void afterPermission() {
 

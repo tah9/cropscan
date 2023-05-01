@@ -15,12 +15,12 @@ import java.util.List;
 /**
  * ->  tah9  2023/4/29 17:22
  */
-public class FormatTRect {
+public class FormatTRectList {
     List<TRect> rectList;
     Context context;
     private static final String TAG = "FormatTRect";
 
-    public FormatTRect(List<TRect> rectList, Context context) {
+    public FormatTRectList(List<TRect> rectList, Context context) {
         this.rectList = rectList;
         this.context = context;
     }

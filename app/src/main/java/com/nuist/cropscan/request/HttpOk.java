@@ -3,14 +3,12 @@ package com.nuist.cropscan.request;
 import static com.nuist.cropscan.request.BASEURL.entireHost;
 
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +31,7 @@ public class HttpOk {
     private final Handler handler;
     private final OkHttpClient okHttpClient;
 
-    private int MAX_TIME = 600;
+    private int MAX_TIME = 60 * 60;//一小时
 
     public HttpOk() {
         handler = new Handler(Looper.getMainLooper());
@@ -57,16 +55,12 @@ public class HttpOk {
     }
 
 
-    public HttpOk upLoadFile(Map<String, String> map, String fileKey, String path) {
+    public Call postOwnerUrlFormData(Map<String, Object> map, String url, HttpResult result) {
         MultipartBody.Builder fm = new MultipartBody.Builder().setType(MultipartBody.FORM);
         for (String key : map.keySet()) {
-            fm.addFormDataPart(key, map.get(key));
+            fm.addFormDataPart(key, (String) map.get(key));
         }
-        File file = new File(path);
-//        this.builder = new Request.Builder().post(
-//                fm.addFormDataPart(fileKey, file.getName(),
-//                        RequestBody.create(MediaType.parse("image/jpg"), file)).build());
-        return this;
+        return postTo(new Request.Builder().post(fm.build()), BASEURL.entireHost + url, result);
     }
 
 
@@ -86,7 +80,6 @@ public class HttpOk {
     public void toBDApi(String url, String token, String base64, HttpResult HttpResult) {
         MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
         RequestBody body = RequestBody.create(mediaType, "image=" + base64);
-//        Log.d(TAG, "baidu to: " + url);
         Request request = new Request.Builder()
                 .url(url + "?access_token=" + token)
                 .method("POST", body)
@@ -105,12 +98,12 @@ public class HttpOk {
         getTo(entireHost + url, HttpResult);
     }
 
-    public Call postToOwnerUrl(JSONObject jsonObject, String url, HttpResult HttpResult) {
-        return postTo(new Request.Builder().post(HttpOk.jsonBody(jsonObject)), url, HttpResult);
+    public Call postToOwnerUrl(Map<String, Object> map, String url, HttpResult HttpResult) {
+        return postTo(new Request.Builder().post(HttpOk.jsonBody(new JSONObject(map))), entireHost + url, HttpResult);
     }
 
-    public Call postToOtherUrl(JSONObject jsonObject, String url, HttpResult HttpResult) {
-        return postTo(new Request.Builder().post(HttpOk.jsonBody(jsonObject)), url, HttpResult);
+    public Call postToOtherUrl(Map<String, Object> map, String url, HttpResult HttpResult) {
+        return postTo(new Request.Builder().post(HttpOk.jsonBody(new JSONObject(map))), url, HttpResult);
     }
 
     private Call postTo(Request.Builder builder, String url, HttpResult HttpResult) {
@@ -143,19 +136,6 @@ public class HttpOk {
                         e.printStackTrace();
                         Log.d(TAG, "onResponse: json转化失败");
                     } catch (Exception e) {
-//                        e.printStackTrace();
-//                        if (response.code() == 200
-//                                && response.message().isEmpty()
-//                                && failSum < MaxFailCount) {
-//                            Log.d(TAG, "onResponse: 重试第" + (failSum++) + "次");
-//                            call.clone().enqueue(getNewCallBack(toResult));
-//                        } else {
-//                            failSum = 0;
-//                            Log.d(TAG, "onResponse: 5" + response);
-//                            Log.d(TAG, "onResponse: 6" + response.body());
-//                            Log.d(TAG, "onResponse: 7" + response.code());
-//                            Log.d(TAG, "onResponse: 重试依然失败 > " + call.request().url());
-//                        }
                         e.printStackTrace();
                     }
                 });

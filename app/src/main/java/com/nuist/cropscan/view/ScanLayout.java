@@ -53,14 +53,14 @@ public class ScanLayout extends ViewGroup {
     private final String fontColor = "#000000";
     private final float fontWidth = 2f;
 
-    private final String boxColor = "#ffffff";
+    private final String boxColor = "#fad69c";
     private final float boxLineWidth = 8f;
     private final int MaskColor = Color.parseColor("#99000000");
 
     //    Rect rect;
     Paint paint, textPaint, clipPaint;
 
-    List<TRect> rectList = new ArrayList<>();
+    List<TRect> rectList;
     Bitmap sourceBitmap;
 
     private int activateIndex = 0;
@@ -107,13 +107,7 @@ public class ScanLayout extends ViewGroup {
     }
 
     public void release() {
-        for (TRect tRect : rectList) {
-            tRect.release();
-        }
-        for (int i = 0; i < getChildCount(); i++) {
-            getBoxViewAt(i).release();
-        }
-        rectList.clear();
+        preIndex=-1;
         removeAllViews();
         removeAllViewsInLayout();
         setBackground(null);
@@ -199,12 +193,6 @@ public class ScanLayout extends ViewGroup {
     }
 
 
-//    @Override
-//    public boolean onTouchEvent(MotionEvent event) {
-//        Log.d(TAG, "onTouchEvent: " + event.toString());
-//
-//        return true;
-//    }
 
     private static final String TAG = "BoxImageView";
 

@@ -6,8 +6,6 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.nuist.cropscan.ActPicture.ActCameraX;
-
 /**
  * ->  tah9  2023/4/5 20:52
  */
@@ -22,6 +20,7 @@ public class BaseFrag extends Fragment {
         ((BaseAct) getActivity()).setString(key, value);
     }
 
+
     public String optString(String key) {
         return ((BaseAct) getActivity()).optString(key);
     }
@@ -30,5 +29,6 @@ public class BaseFrag extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = getActivity();
+
     }
 }

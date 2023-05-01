@@ -37,15 +37,16 @@ public abstract class ActCameraX extends BaseAct {
     public PreviewView cameraView;
     ImageCapture imageCapture;
     Camera camera;
-    private ImageView toGallertBtn;
+    public ImageView btnToGallery;
 
-    private ImageView btn_capture;
-    private ImageView btnSwitchLens;
+    public ImageView btn_capture;
+    public ImageView btnSwitchLens;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private ProcessCameraProvider cameraProvider;
     public Preview preview;
     public ConstraintLayout bottomControllerLayout;
     public FrameLayout owner_layout;
+    public View btnBack;
 
     @SuppressLint("RestrictedApi")
     @Override
@@ -88,7 +89,7 @@ public abstract class ActCameraX extends BaseAct {
     //必须设置
     protected void initCameraX(int ownerViewLayout) {
 
-        ConstraintLayout root = (ConstraintLayout) LayoutInflater.from(context).inflate(R.layout.bak_activity_act_camera_x, null);
+        ConstraintLayout root = (ConstraintLayout) LayoutInflater.from(context).inflate(R.layout.activity_act_camera_x, null);
 
         if (ownerViewLayout != 0) {
             View ownerView = LayoutInflater.from(context).inflate(ownerViewLayout, null);
@@ -99,7 +100,7 @@ public abstract class ActCameraX extends BaseAct {
 
         initView();
 
-        Glide.with(toGallertBtn).load(ImgTool.getLatestPhoto(context).second).into(toGallertBtn);
+        Glide.with(btnToGallery).load(ImgTool.getLatestPhoto(context).second).into(btnToGallery);
 
         if (owner_layout.getVisibility() == View.GONE) {
 
@@ -171,14 +172,17 @@ public abstract class ActCameraX extends BaseAct {
         window.setNavigationBarColor(Color.TRANSPARENT);
         //这样的效果跟上述的主题设置效果类似
 
-        toGallertBtn = findViewById(R.id.btn_to_gallery);
-        toGallertBtn.bringToFront();
-        toGallertBtn.setOnClickListener(view -> {
+        btnToGallery = findViewById(R.id.btn_to_gallery);
+        btnToGallery.setOnClickListener(view -> {
             startActivityForResult(new Intent(ActCameraX.this, ActGallery.class), 99);
         });
-        findViewById(R.id.back_btn).setOnClickListener(v -> {
+        btnBack = findViewById(R.id.back_btn);
+        btnBack.setOnClickListener(v -> {
             finish();
         });
+
+
+
         bottomControllerLayout = findViewById(R.id.bottom_controller_layout);
         cameraView = (PreviewView) findViewById(R.id.act_cameraTest_pv_cameraPreview);
 //        cameraView.setImplementationMode(PreviewView.ImplementationMode.PERFORMANCE);
@@ -202,11 +206,4 @@ public abstract class ActCameraX extends BaseAct {
 
     }
 
-    @Override
-    protected void sensorRotation(float v) {
-        super.sensorRotation(v);
-        if (toGallertBtn != null) {
-            toGallertBtn.setRotation(v);
-        }
-    }
 }

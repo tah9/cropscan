@@ -2,6 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
+    android:clipChildren="false"
     android:layout_height="150dp">
     <androidx.cardview.widget.CardView android:id="@+id/tip_layout"
         android:layout_width="match_parent"
@@ -12,6 +13,8 @@
         app:cardBackgroundColor="#4DFFFFFF"
         app:cardCornerRadius="20dp"
         app:cardElevation="0dp"
+        android:clipChildren="false"
+
         app:cardMaxElevation="0dp"
         app:layout_constraintBottom_toBottomOf="@+id/pic_mask"
         app:layout_constraintEnd_toEndOf="parent"
@@ -22,13 +25,13 @@
             android:layout_width="40dp"
             android:layout_height="30dp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="5dp"
             android:rotation="180"
             android:scaleType="fitXY"
             android:src="@drawable/slide" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/tip_recy"
+            android:clipChildren="false"
             android:layout_width="match_parent"
             android:layout_height="@dimen/bottom_tip_height"
             android:layout_gravity="center_vertical" />

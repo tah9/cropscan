@@ -19,7 +19,7 @@ public class TRect {
     private Bitmap rectBitmap;
 
     public void setRectBitmap(Bitmap bitmap) {
-        this.rectBitmap = Bitmap.createBitmap(bitmap, rect.left, rect.top, rect.width(), rect.height());
+        this.rectBitmap=Bitmap.createBitmap(bitmap, rect.left, rect.top, rect.width(), rect.height());
     }
 
     public void setBitmap(Bitmap bitmap) {

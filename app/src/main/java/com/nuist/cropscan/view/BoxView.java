@@ -149,7 +149,6 @@ public class BoxView extends FrameLayout {
         this.loadBitmap = null;
         this.iconBitmap.recycle();
         this.iconBitmap = null;
-        rect.release();
     }
 
 

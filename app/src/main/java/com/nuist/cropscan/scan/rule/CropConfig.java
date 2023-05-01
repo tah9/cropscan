@@ -11,7 +11,7 @@ public class CropConfig {
 
 
     //最多框选个数，减轻服务器识别压力
-    public static int MaxCropCount = 9;
+    public static int MaxCropCount = 90;
 
     public static int IconWH = 130;
 }
