@@ -46,9 +46,19 @@ public class Tools {
 
     private static final String TAG = "Tools";
 
-    public static int fullScreenHeight(Context context){
+    public static int fullScreenHeight(Context context) {
         return getStatusBarHeight(context) + getHeight(context);
     }
+
+    //css中的px和安卓不一样
+    public static int getCssStatusBarHeight(Context context) {
+        float scale = context.getResources().getDisplayMetrics().density;
+        double statusBarHeight = Tools.getStatusBarHeight(context);
+        int cssValue = (int) (statusBarHeight / scale); // 计算得到CSS像素值
+        Log.d(TAG, "cssValue: " + cssValue);
+        return cssValue;
+    }
+
     public static int getStatusBarHeight(Context context) {
         int statusBarHeight = 0;
         try {

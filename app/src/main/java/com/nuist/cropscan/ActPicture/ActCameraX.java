@@ -35,8 +35,8 @@ import com.nuist.cropscan.tool.ImgTool;
 public abstract class ActCameraX extends BaseAct {
     private static final String TAG = "ActCameraX";
     public PreviewView cameraView;
-    ImageCapture imageCapture;
-    Camera camera;
+    public ImageCapture imageCapture;
+    public Camera camera;
     public ImageView btnToGallery;
 
     public ImageView btn_capture;
@@ -45,14 +45,27 @@ public abstract class ActCameraX extends BaseAct {
     private ProcessCameraProvider cameraProvider;
     public Preview preview;
     public ConstraintLayout bottomControllerLayout;
-    public FrameLayout owner_layout;
     public View btnBack;
+    public boolean openCamera = false;
 
     @SuppressLint("RestrictedApi")
     @Override
     protected void onResume() {
         super.onResume();
-        if (owner_layout.getVisibility() == View.VISIBLE) {
+        if (preview != null && preview.getCamera() != null && !openCamera) {
+            switchCamera(false);
+        }
+    }
+
+    @SuppressLint("RestrictedApi")
+    public void switchCamera(boolean open) {
+        this.openCamera = open;
+        if (preview == null || preview.getCamera() == null) {
+            return;
+        }
+        if (open) {
+            preview.getCamera().open();
+        } else {
             preview.getCamera().close();
         }
     }
@@ -87,26 +100,21 @@ public abstract class ActCameraX extends BaseAct {
 
 
     //必须设置
-    protected void initCameraX(int ownerViewLayout) {
+    protected void initCameraX() {
 
         ConstraintLayout root = (ConstraintLayout) LayoutInflater.from(context).inflate(R.layout.activity_act_camera_x, null);
 
-        if (ownerViewLayout != 0) {
-            View ownerView = LayoutInflater.from(context).inflate(ownerViewLayout, null);
-            owner_layout = (FrameLayout) root.findViewById(R.id.owner_layout);
-            owner_layout.addView(ownerView);
-        }
         setContentView(root);
 
         initView();
 
         Glide.with(btnToGallery).load(ImgTool.getLatestPhoto(context).second).into(btnToGallery);
 
-        if (owner_layout.getVisibility() == View.GONE) {
-
-        } else {
-            initCamera();
-        }
+//        if (!openCamera) {
+//
+//        } else {
+        initCamera();
+//        }
     }
 
     private boolean onCameraCreate;
@@ -142,6 +150,7 @@ public abstract class ActCameraX extends BaseAct {
     param:cameraSelector int
      */
     protected void openCamera() {
+        openCamera = true;
         //选择摄像头
         CameraSelector cameraSelector = new CameraSelector.Builder().requireLensFacing(curLens).build();
 
@@ -182,28 +191,18 @@ public abstract class ActCameraX extends BaseAct {
         });
 
 
-
         bottomControllerLayout = findViewById(R.id.bottom_controller_layout);
-        cameraView = (PreviewView) findViewById(R.id.act_cameraTest_pv_cameraPreview);
-//        cameraView.setImplementationMode(PreviewView.ImplementationMode.PERFORMANCE);
-        btn_capture = (ImageView) findViewById(R.id.btn_capture);
+        cameraView = findViewById(R.id.act_cameraTest_pv_cameraPreview);
+        btn_capture = findViewById(R.id.btn_capture);
         btn_capture.setOnClickListener(v -> {
             if (!onCameraCreate) return;
             clickCapture(cameraView.getBitmap());
         });
-        btnSwitchLens = (ImageView) findViewById(R.id.btn_switch_lens);
+        btnSwitchLens = findViewById(R.id.btn_switch_lens);
         btnSwitchLens.setOnClickListener(v -> {
             curLens = curLens == CameraSelector.LENS_FACING_BACK ? CameraSelector.LENS_FACING_FRONT : CameraSelector.LENS_FACING_BACK;
-//            picMask.setImageBitmap(cameraView.getBitmap());
-//            picMask.bringToFront();
             openCamera();
-//            new Handler().postDelayed(() -> {
-//                picMask.setImageBitmap(null);
-//            }, 1000);
         });
-//        picMask = findViewById(R.id.pic_mask);
-
-
     }
 
 }

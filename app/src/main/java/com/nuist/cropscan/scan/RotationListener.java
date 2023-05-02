@@ -107,7 +107,7 @@ public class RotationListener {
     };
 
     public interface SensorRotationListener {
-        void turnAround(float v);
+        void turnAround(float angle);
     }
 
     private SensorRotationListener listener;

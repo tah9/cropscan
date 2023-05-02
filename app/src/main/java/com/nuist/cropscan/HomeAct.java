@@ -3,27 +3,43 @@ package com.nuist.cropscan;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.nuist.cropscan.base.BaseAct;
+import com.nuist.cropscan.base.FragWeb;
+import com.nuist.cropscan.dialog.DownLoadDialog;
+import com.nuist.cropscan.dialog.LoadingDialogUtils;
+import com.nuist.cropscan.dialog.SnackUtil;
 import com.nuist.cropscan.request.BASEURL;
+import com.nuist.cropscan.request.FileConfig;
 import com.nuist.cropscan.request.HttpOk;
 import com.nuist.cropscan.scan.ActCropScan;
+import com.nuist.cropscan.tool.FileUtils;
+import com.nuist.cropscan.tool.ZipUtils;
+import com.nuist.guide.Act_Login;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.Random;
 
 /**
@@ -37,16 +53,80 @@ public class HomeAct extends BaseAct {
     private ImageView tr;
     private ImageView fl;
     private ImageView fr;
-    long durTime = 3000;
+    long durTime = 1000;
 
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setLightStatusBar(getWindow(), true, getResources().getColor(R.color.main));
+    private void loadPage(int newVersion) {
+        setInt(getResources().getString(R.string.web_version), newVersion);
+        int localVersion = optInt(getResources().getString(R.string.web_version));
+        Log.d(TAG, "localWebVersion: " + localVersion);
+    }
 
+    private void checkAppVersion(JSONObject o) throws Exception {
+        //获取软件版本号，对应AndroidManifest.xml下android:versionCode
+        int versionCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+        int netAppVersion = o.optInt("androidVersionCode");
+        Log.d(TAG, "AppVersionCode: " + versionCode);
+        Log.d(TAG, "netAppVersion: " + netAppVersion);
+
+        if (netAppVersion > versionCode) {
+            SnackUtil.show(this,"版本过低，请更新版本!");
+            Toast toast = Toast.makeText(context, "版本过低，请更新版本!", Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.CENTER, 0, 0);
+            toast.show();
+            Uri uri = Uri.parse("http://149.28.194.155:9001");
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            startActivity(intent);
+            new Handler(getMainLooper()).postDelayed(() -> {
+                finish();
+            }, 3000);
+            throw new Exception();
+        }
+    }
+
+    private void checkWebVersion(JSONObject o) {
+        int localVersion = optInt(getResources().getString(R.string.web_version));
+        int netVersion = o.optInt("webVersion");
+        Log.d(TAG, "localWebVersion: " + localVersion);
+        Log.d(TAG, "netVersion: " + netVersion);
+//        if (netVersion > localVersion) {
+//            //清空已下载文件
+//            FileUtils.deleteDir(new File(getFilesDir().getAbsolutePath()));
+//
+//            String zipPath = getFilesDir().getAbsolutePath() + "/dist+" + netVersion + ".zip";
+//            DownLoadDialog downLoadDialog = new DownLoadDialog(context,
+//                    BASEURL.entireHost + "/static/mobile/android/dist.zip",
+//                    zipPath);
+//            downLoadDialog.show();
+//            downLoadDialog.setOnDismissListener(dialogInterface -> {
+//                LoadingDialogUtils.show(this);
+//                ZipUtils.UnZipFolderDelOri(zipPath,
+//                        FileConfig.webFilePath(context));
+//                LoadingDialogUtils.dismiss();
+//                loadPage(netVersion);
+//            });
+//        } else {
+        loadPage(netVersion);
+//        }
+    }
+
+    private void checkVersion() {
+        HttpOk.getInstance().toOwnerUrl("/version/latest", o -> {
+            JSONObject versionData = o.optJSONObject("data");
+            checkAppVersion(versionData);
+            checkWebVersion(versionData);
+
+
+
+            createView();
+        });
+    }
+
+    private void createView() {
+        if (optString("uid").isEmpty()) {
+            startActivity(new Intent(this, Act_Login.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+            finish();
+        }
         setContentView(R.layout.act_home);
-
-
 
         initView();
         recy.setLayoutManager(new GridLayoutManager(context, 4));
@@ -56,7 +136,7 @@ public class HomeAct extends BaseAct {
                 @NonNull
                 @Override
                 public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                    return new RecyclerView.ViewHolder(View.inflate(context, R.layout.item_disease, null)) {
+                    return new RecyclerView.ViewHolder(LayoutInflater.from(context).inflate(R.layout.item_disease, parent, false)) {
                     };
                 }
 
@@ -72,11 +152,11 @@ public class HomeAct extends BaseAct {
                     ImageView pic = holder.itemView.findViewById(R.id.pic);
                     Glide.with(pic).load(BASEURL.picUrl(object.optString("fname") + "/cover")).into(pic);
                     holder.itemView.setOnClickListener(view -> {
-                        setString("name", object.optString("name"));
-                        setString("fname", object.optString("fname"));
-                        setString("localPicPath", "");
-                        setString("bottomPic", BASEURL.picUrl(object.optString("fname") + "/cover"));
-//                        startActivity(new Intent(HomeAct.this, MainActivity.class));
+                        setString("plant", object.optString("name"));
+//                        setString("fname", object.optString("fname"));
+//                        setString("localPicPath", "");
+//                        setString("bottomPic", BASEURL.picUrl(object.optString("fname") + "/cover"));
+                        startActivity(new Intent(HomeAct.this, ActWeb.class));
                     });
                 }
 
@@ -86,6 +166,12 @@ public class HomeAct extends BaseAct {
                 }
             });
         });
+    }
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        checkVersion();
     }
 
     private void initView() {

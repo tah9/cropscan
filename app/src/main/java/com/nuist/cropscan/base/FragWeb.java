@@ -1,10 +1,14 @@
 package com.nuist.cropscan.base;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,10 +20,18 @@ import android.webkit.WebView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.nuist.cropscan.ActWeb;
 import com.nuist.cropscan.R;
+import com.nuist.cropscan.dialog.EvalDialog;
+import com.nuist.cropscan.request.BASEURL;
 import com.nuist.cropscan.scan.ActCropScan;
 import com.nuist.cropscan.dialog.LoadingDialogUtils;
+import com.nuist.cropscan.scan.rule.FormatBitmap;
+import com.nuist.cropscan.tool.Tools;
+import com.nuist.guide.Act_Login;
 
 import org.json.JSONObject;
 
@@ -85,6 +97,37 @@ public class FragWeb extends BaseFrag {
     }
 
     @JavascriptInterface
+    public int getIntValue(String key) {
+        int value = getBaseAct().optInt(key);
+        Log.d(TAG, "getIntValue: " + key + " " + value);
+        return value;
+    }
+
+    @JavascriptInterface
+    public void toEvalInfo(String url) {
+        Log.d(TAG, "toEvalInfo: " + url);
+        CustomTarget<Bitmap> customTarget = new CustomTarget<Bitmap>() {
+
+            @Override
+            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                EvalDialog evalDialog = new EvalDialog(context, getBaseAct());
+
+                evalDialog.recordProcess(FormatBitmap.format(context, resource));
+                evalDialog.setDismissListener(() -> {
+                });
+            }
+
+            @Override
+            public void onLoadCleared(@Nullable Drawable placeholder) {
+
+            }
+        };
+        Glide.with(context).asBitmap().load(BASEURL.entireHost + url).into(customTarget);
+
+
+    }
+
+    @JavascriptInterface
     public void setValue(String key, String value) {
         Log.d(TAG, "setValue: " + key + "-" + value);
         setString(key, value);
@@ -102,6 +145,12 @@ public class FragWeb extends BaseFrag {
 
 
     @JavascriptInterface
+    public void toHome() {
+        Log.d(TAG, "toHome: ");
+        getBaseAct().finish();
+    }
+
+    @JavascriptInterface
     public void toCapture() {
         Log.d(TAG, "toCapture: ");
         startActivity(new Intent(context, ActCropScan.class));
@@ -111,6 +160,7 @@ public class FragWeb extends BaseFrag {
     public void toggleUser() {
         Log.d(TAG, "toggleUser: ");
         getBaseAct().clearSp();
+        startActivity(new Intent(getBaseAct(), Act_Login.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
     }
 
     @JavascriptInterface
@@ -131,6 +181,7 @@ public class FragWeb extends BaseFrag {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        getBaseAct().setInt("statusBarHeight", Tools.getCssStatusBarHeight(context));
         View view = inflater.inflate(R.layout.frag_web, null);
         if (color != null) {
             view.setBackgroundColor(Color.parseColor(color));

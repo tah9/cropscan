@@ -16,7 +16,7 @@
         android:clipChildren="false"
 
         app:cardMaxElevation="0dp"
-        app:layout_constraintBottom_toBottomOf="@+id/pic_mask"
+        app:layout_constraintBottom_toBottomOf="@+id/scan_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 

@@ -13,10 +13,12 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
 import com.nuist.cropscan.base.BaseAct;
+import com.nuist.cropscan.dialog.SnackUtil;
 
 import org.json.JSONObject;
 
@@ -29,7 +31,7 @@ import java.util.List;
 public class LocalGps {
     private static final String TAG = "LocalGps";
     private LocationManager locationManager;
-    private BaseAct context;
+    private BaseAct act;
 
     public void requestLocal() {
         if (!isLocationProviderEnabled()) {
@@ -44,9 +46,11 @@ public class LocalGps {
             localJSON.put("name", address.getAddressLine(0));
             localJSON.put("latitude", String.valueOf(address.getLatitude()));
             localJSON.put("longitude", String.valueOf(address.getLongitude()));
-            context.setString("local", localJSON.toString());
+            act.setString("local", localJSON.toString());
             Log.d(TAG, "getAddress: " + localJSON);
             if (listener != null) {
+                Toast.makeText(act, "已获取到位置", Toast.LENGTH_SHORT).show();
+//                SnackUtil.show(act,"");
                 listener.updateLocal(localJSON);
             }
         } catch (Exception e) {
@@ -55,8 +59,8 @@ public class LocalGps {
     }
 
 
-    public LocalGps(BaseAct context) {
-        this.context = context;
+    public LocalGps(BaseAct act) {
+        this.act = act;
         requestLocal();
     }
 
@@ -77,7 +81,7 @@ public class LocalGps {
         boolean result = false;
         LocationManager locationManager = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
+            locationManager = (LocationManager) act.getSystemService(LOCATION_SERVICE);
         }
         if (locationManager == null) {
             return false;
@@ -95,7 +99,7 @@ public class LocalGps {
     private void openLocationServer() {
         Intent i = new Intent();
         i.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-        context.startActivityForResult(i, 66);
+        act.startActivityForResult(i, 66);
     }
 
     private final LocationListener mLocationListener = new LocationListener() {
@@ -133,7 +137,7 @@ public class LocalGps {
 
     public void getAddress(double latitude, double longitude) {
         List<Address> addressList = null;
-        Geocoder geocoder = new Geocoder(context);
+        Geocoder geocoder = new Geocoder(act);
         try {
             addressList = geocoder.getFromLocation(latitude, longitude, 1);
         } catch (IOException e) {
@@ -152,11 +156,11 @@ public class LocalGps {
      * 监听位置变化
      */
     private void initLocationListener() {
-        locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
+        locationManager = (LocationManager) act.getSystemService(LOCATION_SERVICE);
         if (locationManager == null) {
             return;
         }
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(act, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(act, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding

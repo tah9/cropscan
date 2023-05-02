@@ -1,14 +1,18 @@
 package com.nuist.guide;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.nuist.cropscan.HomeAct;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.base.BaseAct;
 import com.nuist.cropscan.dialog.SnackUtil;
@@ -18,9 +22,14 @@ import com.nuist.cropscan.tool.AniUtils;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class Act_Login extends BaseAct {
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.AppSettingsDialog;
+import pub.devrel.easypermissions.EasyPermissions;
+
+public class Act_Login extends BaseAct  implements EasyPermissions.PermissionCallbacks{
     private static final String TAG = "Act_Login";
     private MaterialButton btnLogin;
     private MaterialButton btnRegister;
@@ -35,6 +44,8 @@ public class Act_Login extends BaseAct {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_layout);
+        requiresOwnerPermission();
+
         initView();
 
         btnLogin.setOnClickListener(v -> {
@@ -52,6 +63,11 @@ public class Act_Login extends BaseAct {
                 HttpOk.getInstance().postToOwnerUrl(map, "/user/login", json -> {
                     if (json.optInt("code") == 200) {
                         SnackUtil.show(this, "登录成功");
+                        JSONObject data = json.optJSONObject("data");
+                        setString("user", data.toString());
+                        setString("uid", data.optString("id"));
+                        startActivity(new Intent(this, HomeAct.class));
+                        finish();
                     } else if (json.optInt("code") == 40000) {
                         SnackUtil.show(this, json.optString("message"));
                     }
@@ -140,5 +156,66 @@ public class Act_Login extends BaseAct {
             btnLogin.setTranslationY(-hei);
             btnRegister.setTranslationY(-hei);
         });
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        // Forward results to EasyPermissions
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
+    public static final int RC_CAMERA_FILE_LOCATION = 1; // requestCode
+    String[] perms = {Manifest.permission.CAMERA,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
+    public void afterPermission() {
+
+    }
+
+    @AfterPermissionGranted(RC_CAMERA_FILE_LOCATION)
+    public void requiresOwnerPermission() {
+        if (EasyPermissions.hasPermissions(this, perms)) {
+            // Already have permission, do the thing
+            // ...
+            afterPermission();
+        } else {
+            // Do not have permissions, request them now
+            EasyPermissions.requestPermissions(this, "不同意权限将无法使用程序",
+                    RC_CAMERA_FILE_LOCATION, perms);
+        }
+    }
+
+    @Override
+    public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, List<String> perms) {
+        Log.d(TAG, "onPermissionsDenied:" + requestCode + ":" + perms.size());
+        if (perms.size() > 0) {
+            requiresOwnerPermission();
+        }
+
+        // (Optional) Check whether the user denied any permissions and checked "NEVER ASK AGAIN."
+        // This will display a dialog directing them to enable the permission in app settings.
+        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
+            new AppSettingsDialog.Builder(this).build().show();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == AppSettingsDialog.DEFAULT_SETTINGS_REQ_CODE) {
+            // Do something after user returned from app settings screen, like showing a Toast.
+            requiresOwnerPermission();
+//            Toast.makeText(this, "测试", Toast.LENGTH_SHORT)
+//                    .show();
+        }
     }
 }

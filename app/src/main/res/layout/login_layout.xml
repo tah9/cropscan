@@ -14,11 +14,12 @@
         app:layout_constraintTop_toTopOf="@+id/guideline5">
 
         <TextView
+            android:textColor="#ffffff"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:text="@string/app_name"
-            android:textSize="24sp"
+            android:textSize="26sp"
             android:textStyle="bold" />
 
         <com.google.android.material.textfield.TextInputEditText
@@ -28,9 +29,10 @@
             android:layout_marginTop="16dp"
             android:hint="邮箱"
             android:inputType="textEmailAddress"
+            android:text="mobilelo918@gmail.com"
             android:textColor="#ffffff"
             android:textColorHint="@color/colorHint"
-            android:textSize="12sp" />
+            android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/p1"
@@ -39,17 +41,18 @@
             android:layout_marginTop="16dp"
             android:hint="密码"
             android:inputType="textPassword"
+            android:text="123456789"
             android:textColor="#ffffff"
             android:textColorHint="@color/colorHint"
-            android:textSize="12sp" />
+            android:textSize="14sp" />
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/p2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="确认密码"
             android:alpha="0"
+            android:hint="确认密码"
             android:inputType="textPassword"
             android:textColor="#ffffff"
             android:textColorHint="@color/colorHint"
@@ -61,6 +64,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="登录"
+            android:textColor="#ffffff"
+            android:backgroundTint="@color/btn"
+            android:textSize="14sp"
             app:cornerRadius="999dp" />
 
         <com.google.android.material.button.MaterialButton
