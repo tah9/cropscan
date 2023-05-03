@@ -2,4 +2,6 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="bottom_tip_height">60dp</dimen>
     <dimen name="item_crop_result">30dp</dimen>
+    <dimen name="btn_back_margin">15dp</dimen>
+    <dimen name="action_bar_height">45dp</dimen>
 </resources>

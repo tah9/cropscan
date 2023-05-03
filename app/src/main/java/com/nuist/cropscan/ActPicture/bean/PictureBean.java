@@ -1,4 +1,4 @@
-package com.nuist.cropscan;
+package com.nuist.cropscan.ActPicture.bean;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -6,7 +6,7 @@ import android.os.Parcelable;
 /**
  * @author tah9  2021/3/14 20:58
  */
-public class PcPathBean implements Parcelable {
+public class PictureBean implements Parcelable {
     public String path;
     public long time;
 
@@ -17,13 +17,13 @@ public class PcPathBean implements Parcelable {
 
     @Override
     public String toString() {
-        return "PcPathBean{" +
+        return "PictureBean{" +
                 "path='" + path + '\'' +
                 ", time=" + time +
                 '}';
     }
 
-    public PcPathBean(String path, long time) {
+    public PictureBean(String path, long time) {
         this.path = path;
         this.time = time;
     }
@@ -34,23 +34,23 @@ public class PcPathBean implements Parcelable {
         dest.writeLong(this.time);
     }
 
-    public PcPathBean() {
+    public PictureBean() {
     }
 
-    protected PcPathBean(Parcel in) {
+    protected PictureBean(Parcel in) {
         this.path = in.readString();
         this.time = in.readLong();
     }
 
-    public static final Creator<PcPathBean> CREATOR = new Creator<PcPathBean>() {
+    public static final Creator<PictureBean> CREATOR = new Creator<PictureBean>() {
         @Override
-        public PcPathBean createFromParcel(Parcel source) {
-            return new PcPathBean(source);
+        public PictureBean createFromParcel(Parcel source) {
+            return new PictureBean(source);
         }
 
         @Override
-        public PcPathBean[] newArray(int size) {
-            return new PcPathBean[size];
+        public PictureBean[] newArray(int size) {
+            return new PictureBean[size];
         }
     };
 

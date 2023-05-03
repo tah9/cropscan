@@ -1,4 +1,4 @@
-package com.nuist.cropscan.adapter;
+package com.nuist.cropscan.ActPicture.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.nuist.cropscan.PcPathBean;
+import com.nuist.cropscan.ActPicture.bean.PictureBean;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.tool.Tools;
 
@@ -23,12 +23,12 @@ import java.util.ArrayList;
 
 public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHolder> {
     private static final String TAG = "TestAdapter";
-    private ArrayList<PcPathBean> imgPaths;
+    private ArrayList<PictureBean> imgPaths;
     private static String rootPath;
 
     public static int width;
 
-    public GalleryAdapter(ArrayList<PcPathBean> imgPaths, Context context, String path) {
+    public GalleryAdapter(ArrayList<PictureBean> imgPaths, Context context, String path) {
         this.imgPaths = imgPaths;
         width = Tools.getWidth(context);
         rootPath = path;
@@ -55,28 +55,28 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        PcPathBean pcPathBean = imgPaths.get(position);
+        PictureBean pictureBean = imgPaths.get(position);
         ImageView pic = holder.pic;
 //            Log.d(TAG, "onBindViewHolder: "+pcPathBean.path);
-        if (pcPathBean.path.endsWith("gif")) {
+        if (pictureBean.path.endsWith("gif")) {
                 /*
                 Glide加载gif会创建很多bitmap占用内存
                  */
-            Glide.with(holder.itemView).asBitmap().load(rootPath + pcPathBean.getPath())
+            Glide.with(holder.itemView).asBitmap().load(rootPath + pictureBean.getPath())
 //                    .skipMemoryCache(true)
 //                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .dontAnimate()
                     .into(pic);
         } else {
-            Glide.with(holder.itemView).load(rootPath + pcPathBean.getPath())
+            Glide.with(holder.itemView).load(rootPath + pictureBean.getPath())
 //                    .skipMemoryCache(true)
 //                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .dontAnimate()
                     .into(pic);
         }
-        holder.tip.setText(pcPathBean.getPath());
+        holder.tip.setText(pictureBean.getPath());
         holder.itemView.setOnClickListener(view -> {
-            mClick.back(rootPath + pcPathBean.getPath());
+            mClick.back(rootPath + pictureBean.getPath());
         });
     }
 

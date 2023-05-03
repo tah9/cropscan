@@ -2,7 +2,6 @@ package com.nuist.cropscan.dialog;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.Gravity;
@@ -15,7 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.nuist.cropscan.R;
-import com.nuist.cropscan.camera.example.adapter.CameraSimpleAda;
+import com.nuist.cropscan.scan.CameraSimpleAda;
 import com.nuist.cropscan.request.HttpOk;
 
 import org.json.JSONArray;

@@ -10,7 +10,6 @@ import android.util.Log;
 import com.nuist.cropscan.ActPicture.ActCameraX;
 import com.nuist.cropscan.dialog.CropTipsDialog;
 import com.nuist.cropscan.dialog.EvalDialog;
-import com.nuist.cropscan.dialog.LoadingDialogUtils;
 import com.nuist.cropscan.scan.rule.FormatBitmap;
 import com.nuist.cropscan.tool.AniUtils;
 import com.nuist.cropscan.tool.LocalGps;
@@ -106,6 +105,9 @@ public class ActCropScan extends ActCameraX {
 
             @Override
             public void onDismiss() {
+                if (evalDialog != null) {
+                    switchCamera(false);
+                }
                 //复原拍摄控制栏
                 if (bottomControllerLayout.getTranslationY() == -recyHei) {
                     ObjectAnimator.ofFloat(bottomControllerLayout, "translationY", -recyHei, 0).setDuration(durTime).start();
@@ -117,13 +119,18 @@ public class ActCropScan extends ActCameraX {
 
     @Override
     public void onBackPressed() {
-        finish();
-        LoadingDialogUtils.dismiss();
-    }
+        if (hasNewCapture){
+            //有新的识别操作，通知刷新
+            setResult(101);
+        }
 
+        finish();
+    }
+    private boolean hasNewCapture =false;
 
     @Override
     public void clickCapture(Bitmap bitmap) {
+        hasNewCapture = true;
         //关闭摄像头
         switchCamera(false);
         localGps.requestLocal();

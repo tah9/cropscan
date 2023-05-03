@@ -49,6 +49,10 @@ public:
 
     void doCallback(size_t left, size_t right);
 
+    /*
+     *
+     */
+    void doCallbackFolder();
 };
 
 #endif //DEMO2_23_SCANNER_H

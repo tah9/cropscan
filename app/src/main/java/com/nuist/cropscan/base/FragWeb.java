@@ -1,6 +1,7 @@
 package com.nuist.cropscan.base;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,13 +17,17 @@ import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.nuist.cropscan.ActPicture.ActGallery;
 import com.nuist.cropscan.ActWeb;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.dialog.EvalDialog;
@@ -61,34 +66,13 @@ public class FragWeb extends BaseFrag {
         return webView;
     }
 
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        String resultPlant = optString(getResources().getString(R.string.record));
-        if (!resultPlant.isEmpty()) {
-            webView.loadUrl("javascript:toResultInfo()");
+    ActivityResultLauncher<Intent> intentActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        //此处是跳转的result回调方法
+        if (result.getResultCode() == 101&&webView != null) {
+            webView.loadUrl("javascript:window.location.reload(true)");
         }
-    }
+    });
 
-    @JavascriptInterface
-    public void evalFinish(String jsonStr) throws Exception {
-        Log.d(TAG, "evalFinish: " + jsonStr);
-        JSONObject o = new JSONObject(jsonStr);
-        LoadingDialogUtils.dismiss();
-//        if (o.optInt("acc") == 1) {
-        setString(getResources().getString(R.string.record), o.optString("record"));
-        Intent intent = new Intent(getActivity(), ActWeb.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
-//            finish();
-//        } else {
-//            runOnUiThread(() -> {
-//                Toast.makeText(context, "检测失败", Toast.LENGTH_SHORT).show();
-//                picMask.setImageBitmap(null);
-//            });
-//        }
-    }
 
     @JavascriptInterface
     public String getValue(String key) {
@@ -134,14 +118,6 @@ public class FragWeb extends BaseFrag {
     }
 
 
-    @JavascriptInterface
-    public void loadUrl(String url) {
-        Log.d(TAG, "loadUrl: " + url);
-        webView.post(() -> {
-            webView.loadUrl(url);
-            Log.d(TAG, "after loadUrl: " + url);
-        });
-    }
 
 
     @JavascriptInterface
@@ -153,7 +129,8 @@ public class FragWeb extends BaseFrag {
     @JavascriptInterface
     public void toCapture() {
         Log.d(TAG, "toCapture: ");
-        startActivity(new Intent(context, ActCropScan.class));
+        Intent intent = new Intent(context, ActCropScan.class);
+        intentActivityResultLauncher.launch(intent);
     }
 
     @JavascriptInterface
@@ -197,6 +174,8 @@ public class FragWeb extends BaseFrag {
     @SuppressLint("JavascriptInterface")
     private void setWebView() {
         WebSettings settings = webView.getSettings();
+        //禁止调用外部浏览器
+        webView.setWebViewClient(new WebViewClient());
         settings.setDomStorageEnabled(true);
         settings.setJavaScriptEnabled(true);
         //允许跨域

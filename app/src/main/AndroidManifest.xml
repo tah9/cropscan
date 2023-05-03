@@ -44,27 +44,29 @@
             android:name=".scan.ActCropScan"
             android:exported="true"></activity>
 
-        <service
-            android:name=".aidl.AidlServiceTest"
-            android:enabled="true"
-            android:exported="true"
-            android:process=":aidl" />
 
         <activity
             android:name=".HomeAct"
             android:exported="true">
 
-             <intent-filter>
-             <action android:name="android.intent.action.MAIN" />
+<!--             <intent-filter>-->
+<!--             <action android:name="android.intent.action.MAIN" />-->
 
 
-             <category android:name="android.intent.category.LAUNCHER" />
-             </intent-filter>
+<!--             <category android:name="android.intent.category.LAUNCHER" />-->
+<!--             </intent-filter>-->
         </activity>
         <activity
             android:name=".ActPicture.ActGallery"
             android:exported="true"
-            android:process=":aidl" />
+            android:process=":aidl" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

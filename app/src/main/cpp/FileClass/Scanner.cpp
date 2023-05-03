@@ -23,7 +23,9 @@ inline int sortByPic(const FileInfo &f1, const FileInfo &f2) {
     return f1.time > f2.time;
 }
 
-
+/*
+ * 每个线程扫描一个目录
+ */
 void doScan(const string &path) {
     DIR *dir = opendir(path.c_str());
     if (dir == nullptr) {
@@ -55,6 +57,7 @@ void doScan(const string &path) {
                    && ets::isPicture(dirp->d_name)) {
             struct stat fileStat;
 //                lstat((path + "/" + dirp->d_name).c_str(), &fileStat);
+            //读取文件
             fstatat(dirfd(dir), dirp
                     ->d_name, &fileStat, 0);
             tempFileList.emplace_back(
@@ -66,7 +69,34 @@ void doScan(const string &path) {
     closedir(dir);
 //    std::sort(tempFileList.begin(), tempFileList.end(), sortByPic);
 
+
+    /*
+     * topK获取文件夹内最新图片，单线程扫描单目录，故文件夹集合操作不需要上锁
+     */
+
+
+
+    if (tempFileList.size() == 0) {
+        return;
+    }
+
+
+    std::partial_sort(tempFileList.begin(), tempFileList.begin() + 1, tempFileList.end(),
+                      sortByPic);
+
+    std::string first_path = tempFileList.at(0).path;
+    std::size_t last_pos = first_path.rfind('/');
+    std::size_t last_pos2 = first_path.rfind('/', last_pos - 1);
+    /*
+     * 多个线程共同操作一个图片集合，需加锁
+     */
     mx->lock();
+
+    v_folder.emplace_back(first_path.substr(last_pos2 + 1, last_pos - last_pos2 - 1),
+                          first_path,
+                          tempFileList.at(0).time,
+                          first_path.substr(0, last_pos),
+                          tempFileList.size());
     allFile.insert(allFile.end(), tempFileList.begin(), tempFileList.end());
     mx->unlock();
 }
@@ -74,7 +104,8 @@ void doScan(const string &path) {
 Scanner::Scanner(const string &path) {
     len_r_path = path.length();
     LOGI("path >%s", path.c_str());
-    allFile.reserve((int) pow(2, 13));//预分配8192大小
+    v_folder.reserve((unsigned int) pow(2, 7));//预分配128个文件夹位置
+    allFile.reserve((unsigned int) pow(2, 13));//预分配8192个图片位置
     long startTime = getMs();
     LOGI("createPool time> %ld", startTime);
     startTime = getMs();
@@ -88,6 +119,7 @@ Scanner::Scanner(const string &path) {
 
 Scanner::~Scanner() {
     allFile.resize(0);
+    v_folder.resize(0);
     delete pool;
     delete mx;
     LOGI("扫描类销毁 %ld", getMs());
@@ -95,12 +127,17 @@ Scanner::~Scanner() {
 
 void Scanner::sortAndBack() {
     allFile.shrink_to_fit();
+    v_folder.shrink_to_fit();
+
+    doCallbackFolder();
+
     long start = getMs();
     /*
      * 在排序前先回调topK个，k是回调阈值，若集合小于k，不操作（0）
      */
     int topK = CALLBACK_COUNT > allFile.size() ? 0 : CALLBACK_COUNT;
     LOGI("topK  %d", topK);
+
 
     std::partial_sort(allFile.begin(), allFile.begin() + topK, allFile.end(), sortByPic);
     doCallback(0, topK);

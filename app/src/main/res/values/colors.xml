@@ -13,6 +13,7 @@
     <color name="web_bg">#3c3f41</color>
     <color name="colorHint">#C2D2DD</color>
     <color name="dark">#000000</color>
+    <color name="galleryHeaderTip">#ffffff</color>
 
     <color name="btn">#0058db</color>
     <!--透明-->

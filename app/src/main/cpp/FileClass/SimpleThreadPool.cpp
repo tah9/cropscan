@@ -54,10 +54,10 @@ public:
                         data_->cond_.wait(lk);
                     }
                 }
-                LOGI("线程关闭");
+//                LOGI("线程关闭");
                 if (--num_thread == 0) {
                     delete data_->mtx_;
-                    LOGI("删除锁");
+//                    LOGI("删除锁");
                 }
             }).detach();
         }

@@ -31,11 +31,13 @@ public class ScanLayoutDispatch {
     public ScanLayoutDispatch(int picMaskHei, AppBarLayout barLayout) {
         this.picMaskHei = picMaskHei;
         this.barLayout = barLayout;
-    }
-    public void dispatch(MotionEvent ev){
-        barLayout.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
+        this.barLayout.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
             barVerticalOffset = verticalOffset;
         });
+    }
+
+    public void dispatch(MotionEvent ev) {
+
         float rawY = ev.getRawY();
 
         if (behavior == null) {

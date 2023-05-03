@@ -1,6 +1,7 @@
 package com.nuist.cropscan.ActPicture;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -9,10 +10,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
-import android.widget.FrameLayout;
+import android.view.WindowManager;
 import android.widget.ImageView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.Camera;
@@ -30,7 +32,7 @@ import com.bumptech.glide.request.transition.Transition;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.base.BaseAct;
-import com.nuist.cropscan.tool.ImgTool;
+import com.nuist.cropscan.tool.img.ImgTool;
 
 public abstract class ActCameraX extends BaseAct {
     private static final String TAG = "ActCameraX";
@@ -70,27 +72,6 @@ public abstract class ActCameraX extends BaseAct {
         }
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 99 && data != null) {
-            String path = data.getStringExtra("path");
-            Log.d(TAG, "onActivityResult: " + path);
-            CustomTarget<Bitmap> customTarget = new CustomTarget<Bitmap>() {
-
-                @Override
-                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                    clickCapture(resource);
-                }
-
-                @Override
-                public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                }
-            };
-            Glide.with(context).asBitmap().load(path).into(customTarget);
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,28 +147,43 @@ public abstract class ActCameraX extends BaseAct {
 
     public abstract void clickCapture(Bitmap bitmap);
 
-    ;
+    ActivityResultLauncher<Intent> intentActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        //此处是跳转的result回调方法
+        //如果在SecondAcitivity中设置的result不为空并且resultcode为ok，则对数据进行处理
+        if (result.getData() != null && result.getResultCode() == Activity.RESULT_OK) {
+            String path = result.getData().getStringExtra("path");
+            Log.d(TAG, "onActivityResult: " + path);
+            CustomTarget<Bitmap> customTarget = new CustomTarget<Bitmap>() {
+
+                @Override
+                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                    clickCapture(resource);
+                }
+
+                @Override
+                public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                }
+            };
+            Glide.with(context).asBitmap().load(path).into(customTarget);
+        }
+    });
 
 
     private void initView() {
-        Window window = getWindow();
-        //使得布局延伸到状态栏和导航栏区域
-        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-
-        //透明状态栏/导航栏
-        window.setStatusBarColor(Color.argb(50, 0, 0, 0));
-        window.setNavigationBarColor(Color.TRANSPARENT);
-        //这样的效果跟上述的主题设置效果类似
+        setStatusBar();
 
         btnToGallery = findViewById(R.id.btn_to_gallery);
         btnToGallery.setOnClickListener(view -> {
-            startActivityForResult(new Intent(ActCameraX.this, ActGallery.class), 99);
+//            Intent intent = new Intent(context, YourActivity.class);
+//            context.startActivity(intent);
+            Intent intent = new Intent(this, ActGallery.class);
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intentActivityResultLauncher.launch(intent);
         });
         btnBack = findViewById(R.id.back_btn);
         btnBack.setOnClickListener(v -> {
-            finish();
+            onBackPressed();
         });
 
 
@@ -205,4 +201,11 @@ public abstract class ActCameraX extends BaseAct {
         });
     }
 
+    private void setStatusBar(){
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        //需要设置这个 flag 才能调用 setStatusBarColor 来设置状态栏颜色
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        //设置状态栏颜色
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+    }
 }

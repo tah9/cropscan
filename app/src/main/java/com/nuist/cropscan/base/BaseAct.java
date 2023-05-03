@@ -43,7 +43,9 @@ public class BaseAct extends AppCompatActivity {
 
     public String optString(String key) {
         initSp();
-        return sharedPreferences.getString(key, "");
+        String value = sharedPreferences.getString(key, "");
+        Log.d(TAG, "setValue: " + key + "-" + value);
+        return value;
     }
 
     public int optInt(String key) {

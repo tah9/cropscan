@@ -16,9 +16,12 @@
 
 static jclass jcls;
 static jclass pc_cls;
+static jclass folder_cls;
 static jobject jobj;
 static jmethodID jCallbackMid;
-static jmethodID file_costruct;
+static jmethodID jCallbackFolderMid;
+static jmethodID pc_construct_method;
+static jmethodID folder_construct_method;
 static jclass list_cls;
 JNIEnv *env = nullptr;
 JavaVM *jvm = nullptr;
@@ -26,6 +29,57 @@ JavaVM *jvm = nullptr;
 /*
 * env包含java线程
 */
+void Scanner::doCallbackFolder() {
+    //Attach主线程
+//    jvm->AttachCurrentThread(reinterpret_cast<JNIEnv **>(reinterpret_cast<void **>(&env)),
+//                             nullptr);
+//    jvm->AttachCurrentThread(&env, nullptr); //绑定当前线程，获取当前线程的JNIEnv
+
+    //获得ArrayList类引用，结束后释放
+    list_cls = env->FindClass("java/util/ArrayList");
+    if (list_cls == nullptr) {
+        cout << "listcls is null \n";
+    }
+    jmethodID list_costruct = env->GetMethodID(list_cls, "<init>", "()V"); //获得集合构造函数Id
+//
+//    //创建list局部引用，结束后释放
+    jobject list_obj = env->NewLocalRef(
+            env->NewObject(list_cls, list_costruct)); //创建一个Arraylist集合对象
+    //或得Arraylist类中的 add()方法ID，其方法原型为： boolean add(Object object) ;
+    jmethodID list_add = env->GetMethodID(list_cls, "add", "(Ljava/lang/Object;)Z");
+
+    for (int i = 0; i < v_folder.size(); ++i) {
+        auto &folder = v_folder[i];
+
+        jstring first_path = env->NewStringUTF(folder.first_path.c_str());
+        jstring path = env->NewStringUTF(folder.path.c_str());
+        jstring name = env->NewStringUTF(folder.name.c_str());
+        jlong time = folder.m_time;
+        jint size = folder.size;
+        //构造一个javabean文件对象
+        jobject java_PcBean = env->NewObject(folder_cls, folder_construct_method,
+                                             name, first_path, path, size, time);
+        //执行Arraylist类实例的add方法，添加一个对象
+        env->CallBooleanMethod(list_obj, list_add, java_PcBean);
+
+        //释放局部引用
+        env->DeleteLocalRef(first_path);
+        env->DeleteLocalRef(path);
+        env->DeleteLocalRef(name);
+
+        env->DeleteLocalRef(java_PcBean);
+    }
+    //调用java回调方法
+    env->CallVoidMethod(jobj, jCallbackFolderMid, list_obj);
+
+    //释放局部引用
+    env->DeleteLocalRef(list_cls);
+    env->DeleteLocalRef(list_obj);
+
+
+//    jvm->DetachCurrentThread();
+}
+
 void Scanner::doCallback(size_t left, size_t right) {
     if (right == 0) return;
     //Attach主线程
@@ -51,7 +105,7 @@ void Scanner::doCallback(size_t left, size_t right) {
         jstring path = env->NewStringUTF(file.path.c_str());
         jlong time = file.time;
         //构造一个javabean文件对象
-        jobject java_PcBean = env->NewObject(pc_cls, file_costruct,
+        jobject java_PcBean = env->NewObject(pc_cls, pc_construct_method,
                                              path, time);
         //执行Arraylist类实例的add方法，添加一个对象
         env->CallBooleanMethod(list_obj, list_add, java_PcBean);
@@ -85,12 +139,18 @@ void scan(JNIEnv *env, jobject thiz, jstring root_path) {
 //    jobj = env->NewGlobalRef(env->NewObject(jcls, mainId));
     //获取回调方法ID
     jCallbackMid = env->GetMethodID(jcls, "nativeCallback", "(Ljava/util/ArrayList;)V");
+    jCallbackFolderMid = env->GetMethodID(jcls, "nativeCallbackFolder", "(Ljava/util/ArrayList;)V");
 
 
     pc_cls = (jclass) (env->NewGlobalRef(
-            env->FindClass("com/nuist/cropscan/PcPathBean")));//获得类引用
+            env->FindClass("com/nuist/cropscan/ActPicture/bean/PictureBean")));//获得图片类引用
+    folder_cls = (jclass) (env->NewGlobalRef(
+            env->FindClass("com/nuist/cropscan/ActPicture/bean/FolderBean")));//获得图片类引用
+
     //获得该类型的构造函数  函数名为 <init> 返回类型必须为 void 即 V
-    file_costruct = env->GetMethodID(pc_cls, "<init>", "(Ljava/lang/String;J)V");
+    pc_construct_method = env->GetMethodID(pc_cls, "<init>", "(Ljava/lang/String;J)V");
+    folder_construct_method = env->GetMethodID(folder_cls, "<init>",
+                                               "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IJ)V");
 
 
 
@@ -103,6 +163,7 @@ void scan(JNIEnv *env, jobject thiz, jstring root_path) {
     env->DeleteGlobalRef(jobj);
     env->DeleteGlobalRef(jcls);
     env->DeleteGlobalRef(pc_cls);
+    env->DeleteGlobalRef(folder_cls);
 
     LOGI("Release");
     JNI_OnUnload(jvm, nullptr);

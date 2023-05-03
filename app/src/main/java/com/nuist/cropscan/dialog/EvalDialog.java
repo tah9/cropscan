@@ -3,9 +3,7 @@ package com.nuist.cropscan.dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.Rect;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.util.Log;
 import android.view.Gravity;
@@ -18,19 +16,16 @@ import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.AppBarLayout;
-import com.nuist.cropscan.ActPicture.ActCameraX;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.base.BaseAct;
 import com.nuist.cropscan.request.BASEURL;
@@ -39,7 +34,8 @@ import com.nuist.cropscan.scan.ActCropScan;
 import com.nuist.cropscan.scan.CropResultAdapter;
 import com.nuist.cropscan.scan.ScanLayoutDispatch;
 import com.nuist.cropscan.scan.rule.FormatTRectList;
-import com.nuist.cropscan.tool.BitmapUtil;
+import com.nuist.cropscan.tool.img.Base64Until;
+import com.nuist.cropscan.tool.ScreenUtil;
 import com.nuist.cropscan.tool.Tools;
 import com.nuist.cropscan.view.ScanLayout;
 import com.nuist.cropscan.view.entiry.TRect;
@@ -60,7 +56,7 @@ import okhttp3.Call;
 /**
  * ->  tah9  2023/5/2 17:19
  */
-public class EvalDialog extends AlertDialog implements DialogInterface.OnDismissListener {
+public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelListener, DialogInterface.OnDismissListener {
     private ScanLayoutDispatch dispatch;
     private BaseAct act;
     private AppBarLayout barLayout;
@@ -92,6 +88,7 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
         return super.dispatchTouchEvent(ev);
     }
 
+
     @Override
     public void show() {
 
@@ -102,25 +99,15 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
         dispatch = new ScanLayoutDispatch((int) (Tools.fullScreenHeight(act) * 0.75f - Tools.dpToPx(act, 50)),
                 barLayout);
         setOnDismissListener(this);
-
+        setOnCancelListener(this);
         setFullScreen();
-
+        setCanceledOnTouchOutside(false);
         super.show();
     }
 
     private void setFullScreen() {
         Window window = getWindow();
-        window.setBackgroundDrawable(new ColorDrawable(0x00000000));
-        //去除阴影
-        window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-        );
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-
-        window.getDecorView().setBackgroundColor(Color.TRANSPARENT);
-        window.setStatusBarColor(Color.TRANSPARENT);
-        window.setNavigationBarColor(Color.TRANSPARENT);
-        window.setType(WindowManager.LayoutParams.TYPE_APPLICATION_PANEL);
+        ScreenUtil.setTranslateStatusBar(window);
         WindowManager.LayoutParams layoutParams = window.getAttributes();
         layoutParams.width = -1;
         layoutParams.height = -1;
@@ -131,6 +118,13 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
             layoutParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
         }
         window.setAttributes(layoutParams);
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        if (listener != null) {
+            listener.dismiss();
+        }
     }
 
     public interface dismissListener {
@@ -147,7 +141,7 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
         barLayout = view.findViewById(R.id.barLayout);
         scanLayout = view.findViewById(R.id.scan_layout);
         recyCrop = view.findViewById(R.id.recy_crop);
-        reCaptureBtn = view.findViewById(R.id.re_capture_btn);
+        reCaptureBtn = view.findViewById(R.id.back_front);
         nestedView = view.findViewById(R.id.nestedView);
         webView = view.findViewById(R.id.webView);
 
@@ -163,23 +157,6 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
         ViewGroup.LayoutParams layoutParams = bgPic.getLayoutParams();
         layoutParams.height = Tools.fullScreenHeight(act);
         bgPic.setLayoutParams(layoutParams);
-
-//        View frame = findViewById(R.id.webView);
-//        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) webView.getLayoutParams();
-//        int height = Tools.fullScreenHeight(act) - Tools.dpToPx(act, 90);
-//        params.height=height;
-//        webView.setLayoutParams(params);
-//        webView.postDelayed(() -> {
-//            Log.d(TAG, "initView: " + webView.getHeight());
-//        }, 2 * 1000);
-//
-//
-//        CoordinatorLayout.LayoutParams p2 = (CoordinatorLayout.LayoutParams) nestedView.getLayoutParams();
-//        params.height = Tools.fullScreenHeight(act) - Tools.dpToPx(act, 90);
-//        nestedView.setLayoutParams(p2);
-//        nestedView.postDelayed(() -> {
-//            Log.d(TAG, "initView: " + nestedView.getHeight());
-//        }, 2 * 1000);
     }
 
     @Override
@@ -209,7 +186,7 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
 
     public void process(Bitmap bitmap) {
         scanLayout.setMask(bitmap);
-        oriBase64 = BitmapUtil.bit2B64(bitmap);
+        oriBase64 = Base64Until.bit2B64(bitmap);
         try {
             encodeBase64 = URLEncoder.encode(oriBase64, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException e) {
@@ -219,28 +196,28 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
                 "24.9cec12da92453b98fbfa79dca02fac64.2592000.1685101380.282335-32587397",
                 encodeBase64, o -> {
                     JSONArray bdResult = o.optJSONArray("result");
+                    Log.d(TAG, "process: " + bdResult);
                     //百度未识别到个体
                     if (bdResult == null || bdResult.length() == 0) {
                         oneTarget(bitmap);
-                        return;
-                    }
-                    for (int i = 0; i < bdResult.length(); i++) {
-                        JSONObject rectObject = bdResult.optJSONObject(i).optJSONObject("location");
-                        rectList.add(new TRect(rectObject, null));
-                    }
+                    } else {
+                        for (int i = 0; i < bdResult.length(); i++) {
+                            JSONObject rectObject = bdResult.optJSONObject(i).optJSONObject("location");
+                            rectList.add(new TRect(rectObject, null));
+                        }
 
-
+                    }
                     FormatTRectList formatTRectList = new FormatTRectList(rectList, act);
                     rectList = formatTRectList.formatList();
 
                     if (rectList.size() == 0) {
                         oneTarget(bitmap);
-                        return;
-                    }
-                    //截取框内bitmap
-                    for (int i = 0; i < rectList.size(); i++) {
-                        TRect rect = rectList.get(i);
-                        rect.setRectBitmap(bitmap);
+                    } else {
+                        //截取框内bitmap
+                        for (int i = 0; i < rectList.size(); i++) {
+                            TRect rect = rectList.get(i);
+                            rect.setRectBitmap(bitmap);
+                        }
                     }
 
                     recyCrop.setLayoutManager(new LinearLayoutManager(act, RecyclerView.HORIZONTAL, false));
@@ -248,7 +225,7 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
                     recyCrop.setAdapter(cropResultAdapter);
 
                     scanLayout.setTargetClickListener(position -> {
-
+                        loadWebView("识别中~");
                         recyCrop.scrollToPosition(position);
                         cropResultAdapter.updateActivateIndex(scanLayout.getActivateIndex());
 
@@ -263,28 +240,26 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
                             loadWebView(tRect.getName());
                         }
                     });
-
                     scanLayout.setList(rectList);
-
-
                 });
     }
 
 
     //将整个bitmap作为识别目标
     private void oneTarget(Bitmap bitmap) {
+        Log.d(TAG, "oneTarget: ");
         Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
         TRect tRect = new TRect(rect, null);
         tRect.setBitmap(bitmap);
         rectList.add(tRect);
-        evalImg(0);
     }
 
-    private void loadWebView(String name) {
-
-        String url = BASEURL.entireWebHost + "/#/appResult/" + name;
-
+    private void initializeWebView() {
+        if (webView.getUrl() != null) {
+            return;
+        }
         WebSettings settings = webView.getSettings();
+        //禁止调用外部浏览器
         webView.setWebViewClient(new WebViewClient());
         settings.setDomStorageEnabled(true);
         settings.setJavaScriptEnabled(true);
@@ -293,6 +268,11 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setAllowFileAccess(true);
+    }
+
+    private void loadWebView(String name) {
+        initializeWebView();
+        String url = BASEURL.entireWebHost + "/#/appResult/" + name;
         webView.loadUrl(url);
         Log.d(TAG, ": " + url);
         webView.loadUrl("javascript:window.location.reload( true )");
@@ -312,6 +292,12 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
                 map, "/classify/" + act.optString("uid"), o -> {
                     Log.d(TAG, "uploadOriginal: " + o);
                 });
+//        Toast.makeText(act, "", Toast.LENGTH_LONG).show();
+        Toast toast = Toast.makeText(act, "服务器算力有限，识别较慢请等待\n靠近拍摄识别结果更精准", Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
+
+//        SnackUtil.show(act,"");
     }
 
     /*
@@ -321,8 +307,8 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnDismiss
         Map<String, Object> map = new HashMap<>();
         Bitmap rectOriginalBitmap = rectList.get(index).getRectBitmap();
         map.put("image_type", "base64");
-//        map.put("image", BitmapUtil.bit2B64(rectOriginalBitmap));
-        map.put("image", BitmapUtil.bit2B64(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)));
+        map.put("image", Base64Until.bit2B64(rectOriginalBitmap));
+//        map.put("image", BitmapUtil.bit2B64(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)));
 
 //        FragWeb.getWebView().loadUrl("javascript:toEvalImg('" + json + "')");
 

@@ -83,7 +83,6 @@ public class ScanLayout extends ViewGroup {
         textPaint.setStrokeWidth(fontWidth);
         textPaint.setTextSize(fontSize);
 
-
         clipPaint = new Paint();
         clipPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
     }

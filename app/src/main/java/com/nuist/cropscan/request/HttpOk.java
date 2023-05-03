@@ -10,11 +10,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -86,7 +88,7 @@ public class HttpOk {
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .addHeader("Accept", "application/json")
                 .build();
-        this.okHttpClient.newCall(request).enqueue(getNewCallBack(HttpResult));
+        this.okHttpClient.newCall(request).enqueue(newCallBack(HttpResult));
     }
 
 
@@ -109,17 +111,17 @@ public class HttpOk {
     private Call postTo(Request.Builder builder, String url, HttpResult HttpResult) {
         Log.d(TAG, "postTo: " + url);
         Call call = okHttpClient.newCall(builder.url(url).build());
-        call.enqueue(getNewCallBack(HttpResult));
+        call.enqueue(newCallBack(HttpResult));
         return call;
     }
 
     private void getTo(String url, HttpResult HttpResult) {
         Log.d(TAG, "getTo: " + url);
-        okHttpClient.newCall(new Request.Builder().url(url).build()).enqueue(getNewCallBack(HttpResult));
+        okHttpClient.newCall(new Request.Builder().url(url).build()).enqueue(newCallBack(HttpResult));
     }
 
 
-    private Callback getNewCallBack(HttpResult toResult) {
+    private Callback newCallBack(HttpResult toResult) {
         return new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -129,6 +131,20 @@ public class HttpOk {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String json = response.body().string();
+                //获取session的操作，session放在cookie头，且取出后含有“；”,要处理一下
+//                Headers headers = response.headers();
+//                List<String> cookies = headers.values("Set-Cookie");
+//                for (String cookie : cookies) {
+//                    Log.d(TAG, "onResponse: cookie"+cookie);
+//                }
+//                try {
+//                    String s = cookies.get(0);
+//                    String session = s.substring(0, s.indexOf(";"));
+//                    Log.d(TAG, "onResponse: s"+s);
+//                    Log.d(TAG, "onResponse: session"+session);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
                 handler.post(() -> {
                     try {
                         toResult.promise(new JSONObject(json));

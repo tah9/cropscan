@@ -1,4 +1,4 @@
-package com.nuist.cropscan.tool;
+package com.nuist.cropscan.tool.img;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,7 +12,7 @@ import java.io.IOException;
 /**
  * ->  tah9  2023/4/26 11:50
  */
-public class BitmapUtil {
+public class Base64Until {
 
     public static String path2B64(String path){
         try {

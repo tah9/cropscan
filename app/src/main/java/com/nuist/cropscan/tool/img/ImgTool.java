@@ -1,4 +1,4 @@
-package com.nuist.cropscan.tool;
+package com.nuist.cropscan.tool.img;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
