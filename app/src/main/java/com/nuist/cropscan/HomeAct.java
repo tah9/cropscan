@@ -6,10 +6,10 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -18,28 +18,23 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.nuist.cropscan.base.BaseAct;
-import com.nuist.cropscan.base.FragWeb;
 import com.nuist.cropscan.dialog.DownLoadDialog;
-import com.nuist.cropscan.dialog.LoadingDialogUtils;
 import com.nuist.cropscan.dialog.SnackUtil;
 import com.nuist.cropscan.request.BASEURL;
-import com.nuist.cropscan.request.FileConfig;
 import com.nuist.cropscan.request.HttpOk;
 import com.nuist.cropscan.scan.ActCropScan;
-import com.nuist.cropscan.tool.FileUtils;
-import com.nuist.cropscan.tool.ZipUtils;
 import com.nuist.guide.Act_Login;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -55,7 +50,7 @@ public class HomeAct extends BaseAct {
     private ImageView fr;
     long durTime = 1000;
 
-    private void loadPage(int newVersion) {
+    private void setNewWebVersion(int newVersion) {
         setInt(getResources().getString(R.string.web_version), newVersion);
         int localVersion = optInt(getResources().getString(R.string.web_version));
         Log.d(TAG, "localWebVersion: " + localVersion);
@@ -69,7 +64,7 @@ public class HomeAct extends BaseAct {
         Log.d(TAG, "netAppVersion: " + netAppVersion);
 
         if (netAppVersion > versionCode) {
-            SnackUtil.show(this,"版本过低，请更新版本!");
+            SnackUtil.showAutoDis(recy, "版本过低，请更新版本!");
             Toast toast = Toast.makeText(context, "版本过低，请更新版本!", Toast.LENGTH_LONG);
             toast.setGravity(Gravity.CENTER, 0, 0);
             toast.show();
@@ -88,25 +83,20 @@ public class HomeAct extends BaseAct {
         int netVersion = o.optInt("webVersion");
         Log.d(TAG, "localWebVersion: " + localVersion);
         Log.d(TAG, "netVersion: " + netVersion);
-//        if (netVersion > localVersion) {
-//            //清空已下载文件
-//            FileUtils.deleteDir(new File(getFilesDir().getAbsolutePath()));
-//
-//            String zipPath = getFilesDir().getAbsolutePath() + "/dist+" + netVersion + ".zip";
-//            DownLoadDialog downLoadDialog = new DownLoadDialog(context,
-//                    BASEURL.entireHost + "/static/mobile/android/dist.zip",
-//                    zipPath);
-//            downLoadDialog.show();
-//            downLoadDialog.setOnDismissListener(dialogInterface -> {
-//                LoadingDialogUtils.show(this);
-//                ZipUtils.UnZipFolderDelOri(zipPath,
-//                        FileConfig.webFilePath(context));
-//                LoadingDialogUtils.dismiss();
-//                loadPage(netVersion);
-//            });
-//        } else {
-        loadPage(netVersion);
-//        }
+        if (netVersion > localVersion) {
+            String zipPath = getFilesDir().getAbsolutePath() + "/dist.zip";
+            DownLoadDialog downLoadDialog = new DownLoadDialog(this,
+                    BASEURL.entireHost + "/static/mobile/android/dist.zip",
+                    zipPath);
+            downLoadDialog.show();
+
+            downLoadDialog.setOnDismissListener(dialogInterface -> {
+                setNewWebVersion(netVersion);
+                createView();
+            });
+        } else {
+            createView();
+        }
     }
 
     private void checkVersion() {
@@ -114,10 +104,6 @@ public class HomeAct extends BaseAct {
             JSONObject versionData = o.optJSONObject("data");
             checkAppVersion(versionData);
             checkWebVersion(versionData);
-
-
-
-            createView();
         });
     }
 
@@ -136,7 +122,7 @@ public class HomeAct extends BaseAct {
                 @NonNull
                 @Override
                 public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                    return new RecyclerView.ViewHolder(LayoutInflater.from(context).inflate(R.layout.item_disease, parent, false)) {
+                    return new RecyclerView.ViewHolder(LayoutInflater.from(context).inflate(R.layout.recy_item_disease, parent, false)) {
                     };
                 }
 
@@ -153,9 +139,6 @@ public class HomeAct extends BaseAct {
                     Glide.with(pic).load(BASEURL.picUrl(object.optString("fname") + "/cover")).into(pic);
                     holder.itemView.setOnClickListener(view -> {
                         setString("plant", object.optString("name"));
-//                        setString("fname", object.optString("fname"));
-//                        setString("localPicPath", "");
-//                        setString("bottomPic", BASEURL.picUrl(object.optString("fname") + "/cover"));
                         startActivity(new Intent(HomeAct.this, ActWeb.class));
                     });
                 }
@@ -184,6 +167,7 @@ public class HomeAct extends BaseAct {
         tr = (ImageView) findViewById(R.id.tr);
         fl = (ImageView) findViewById(R.id.fl);
         fr = (ImageView) findViewById(R.id.fr);
+        List<ImageView> aniPicList = Arrays.asList(tl, tr, fl, fr);
 
         int top = new Random().nextInt(3);
         int bottom = new Random().nextInt(3);
@@ -205,22 +189,15 @@ public class HomeAct extends BaseAct {
         ObjectAnimator.ofFloat(fl, "translationY", 0F, 800F).setDuration(durTime).start();
         ObjectAnimator.ofFloat(fr, "translationX", 0f, 800F).setDuration(durTime).start();
         ObjectAnimator.ofFloat(fr, "translationY", 0F, 800F).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(tl, "alpha", 1f, 0f).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(tr, "alpha", 1f, 0f).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(fl, "alpha", 1f, 0f).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(fr, "alpha", 1f, 0f).setDuration(durTime).start();
-        new Thread(() -> {
-            try {
-                Thread.sleep(durTime);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+
+        for (ImageView imageView : aniPicList) {
+            ObjectAnimator.ofFloat(imageView, "alpha", 1f, 0f).setDuration(durTime).start();
+        }
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            for (ImageView imageView : aniPicList) {
+                imageView.setImageBitmap(null);
             }
-            runOnUiThread(() -> {
-                tl.setImageBitmap(null);
-                tr.setImageBitmap(null);
-                fl.setImageBitmap(null);
-                fr.setImageBitmap(null);
-            });
-        }).start();
+        }, durTime);
     }
 }

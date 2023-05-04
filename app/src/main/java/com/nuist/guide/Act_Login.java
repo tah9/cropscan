@@ -29,7 +29,7 @@ import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.AppSettingsDialog;
 import pub.devrel.easypermissions.EasyPermissions;
 
-public class Act_Login extends BaseAct  implements EasyPermissions.PermissionCallbacks{
+public class Act_Login extends BaseAct implements EasyPermissions.PermissionCallbacks {
     private static final String TAG = "Act_Login";
     private MaterialButton btnLogin;
     private MaterialButton btnRegister;
@@ -52,7 +52,7 @@ public class Act_Login extends BaseAct  implements EasyPermissions.PermissionCal
             if (editEmail.getEditableText().toString().equals("")
                     || p1.getEditableText().toString().equals("")
             ) {
-                SnackUtil.show(this, "输入不能为空");
+                SnackUtil.showAutoDis(editEmail, "输入不能为空");
                 return;
             }
 
@@ -62,14 +62,14 @@ public class Act_Login extends BaseAct  implements EasyPermissions.PermissionCal
             if (beLogin) {
                 HttpOk.getInstance().postToOwnerUrl(map, "/user/login", json -> {
                     if (json.optInt("code") == 200) {
-                        SnackUtil.show(this, "登录成功");
+                        SnackUtil.showAutoDis(editEmail, "登录成功");
                         JSONObject data = json.optJSONObject("data");
                         setString("user", data.toString());
                         setString("uid", data.optString("id"));
                         startActivity(new Intent(this, HomeAct.class));
                         finish();
                     } else if (json.optInt("code") == 40000) {
-                        SnackUtil.show(this, json.optString("message"));
+                        SnackUtil.showAutoDis(editEmail, json.optString("message"));
                     }
                 });
             } else {
@@ -89,10 +89,10 @@ public class Act_Login extends BaseAct  implements EasyPermissions.PermissionCal
                 HttpOk.getInstance().postToOwnerUrl(map, "/user/register", json -> {
                     Log.d(TAG, ": " + json);
                     if (json.optInt("code") == 200) {
-                        SnackUtil.show(this, "注册成功");
+                        SnackUtil.showAutoDis(editEmail, "注册成功");
                         showLogin();
                     } else if (json.optInt("code") == 40000) {
-                        SnackUtil.show(this, json.optString("message"));
+                        SnackUtil.showAutoDis(editEmail, json.optString("message"));
                     }
                 });
             }
@@ -157,6 +157,7 @@ public class Act_Login extends BaseAct  implements EasyPermissions.PermissionCal
             btnRegister.setTranslationY(-hei);
         });
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

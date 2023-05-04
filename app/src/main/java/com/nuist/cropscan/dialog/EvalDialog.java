@@ -4,15 +4,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.os.Build;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -29,6 +26,7 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.base.BaseAct;
 import com.nuist.cropscan.request.BASEURL;
+import com.nuist.cropscan.request.FileConfig;
 import com.nuist.cropscan.request.HttpOk;
 import com.nuist.cropscan.scan.ActCropScan;
 import com.nuist.cropscan.scan.CropResultAdapter;
@@ -92,7 +90,7 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
     @Override
     public void show() {
 
-        View root = LayoutInflater.from(act).inflate(R.layout.act_crop_eval, null);
+        View root = LayoutInflater.from(act).inflate(R.layout.dialog_eval, null);
         setView(root);
         initView(root);
 
@@ -100,24 +98,13 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
                 barLayout);
         setOnDismissListener(this);
         setOnCancelListener(this);
-        setFullScreen();
+
+        ScreenUtil.setDialogFullScreen(getWindow());
+
         setCanceledOnTouchOutside(false);
         super.show();
-    }
 
-    private void setFullScreen() {
-        Window window = getWindow();
-        ScreenUtil.setTranslateStatusBar(window);
-        WindowManager.LayoutParams layoutParams = window.getAttributes();
-        layoutParams.width = -1;
-        layoutParams.height = -1;
-        layoutParams.gravity = Gravity.CENTER;
-
-        window.getDecorView().setPadding(0, 0, 0, 0);
-        if (Build.VERSION.SDK_INT >= 28) {
-            layoutParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-        }
-        window.setAttributes(layoutParams);
+        SnackUtil.showAutoDis(root, "服务器算力有限，识别较慢请耐心等待~");
     }
 
     @Override
@@ -272,7 +259,7 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
 
     private void loadWebView(String name) {
         initializeWebView();
-        String url = BASEURL.entireWebHost + "/#/appResult/" + name;
+        String url = FileConfig.webFileUrlHome(act) + "#/appResult/" + name;
         webView.loadUrl(url);
         Log.d(TAG, ": " + url);
         webView.loadUrl("javascript:window.location.reload( true )");

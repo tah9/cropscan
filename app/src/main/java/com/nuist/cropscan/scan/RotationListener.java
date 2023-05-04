@@ -16,22 +16,16 @@ import androidx.lifecycle.LifecycleOwner;
  */
 public class RotationListener {
     private static final String TAG = "RotationListener";
-    private LifecycleOwner lifecycle;
-    private Context context;
     private SensorManager sensorManager;
-    private Sensor rotationSensor, orientationSensor;
+    private Sensor rotationSensor;
 
     public RotationListener(LifecycleOwner lifecycle, Context context) {
-        this.lifecycle = lifecycle;
-        this.context = context;
-
         lifecycle.getLifecycle().addObserver(new DefaultLifecycleObserver() {
             @Override
             public void onCreate(@NonNull LifecycleOwner owner) {
                 DefaultLifecycleObserver.super.onCreate(owner);
                 sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
                 rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-                orientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
             }
 
             @Override
@@ -39,7 +33,6 @@ public class RotationListener {
                 DefaultLifecycleObserver.super.onResume(owner);
                 // 注册方向传感器监听器
                 sensorManager.registerListener(sensorEventListener, rotationSensor, SensorManager.SENSOR_DELAY_NORMAL);
-                sensorManager.registerListener(sensorEventListener, orientationSensor, SensorManager.SENSOR_DELAY_NORMAL);
             }
 
             @Override
@@ -54,7 +47,6 @@ public class RotationListener {
     private float preAngle = 0;
     private float[] rotationMatrix = new float[9];
     private float[] orientationAngles = new float[3];
-    private int lastOrientation = -1;
     private SensorEventListener sensorEventListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
@@ -90,10 +82,10 @@ public class RotationListener {
             //获取 90 的整数倍的角度值
             int rollInt = -Math.round(roll / 90) * 90;
 
-                if (preAngle!=rollInt){
-                    listener.turnAround(rollInt);
-                    preAngle=rollInt;
-                }
+            if (preAngle != rollInt) {
+                listener.turnAround(rollInt);
+                preAngle = rollInt;
+            }
 
 
         }
@@ -102,7 +94,6 @@ public class RotationListener {
         @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
             // 方向传感器精度变化时回调该方法
-//            Log.d(TAG, "onAccuracyChanged: ");
         }
     };
 

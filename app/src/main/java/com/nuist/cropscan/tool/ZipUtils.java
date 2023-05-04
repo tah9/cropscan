@@ -69,6 +69,7 @@ public class ZipUtils {
                 out.close();
             }
         }
+        Log.d(TAG, "解压完成");
         inZip.close();
     }
     public static void UnZipFolderDelOri(String zipFileString, String outPathString) {

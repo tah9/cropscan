@@ -5,20 +5,28 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.arialyy.annotations.Download;
-import com.arialyy.aria.core.Aria;
-import com.arialyy.aria.core.task.DownloadTask;
-import com.arialyy.aria.core.task.ITask;
-import com.arialyy.aria.util.CommonUtil;
+import com.nuist.cropscan.HomeAct;
 import com.nuist.cropscan.R;
+import com.nuist.cropscan.request.FileConfig;
+import com.nuist.cropscan.tool.ZipUtils;
 import com.nuist.cropscan.view.NumProgressView;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * ->  tah9  2023/4/20 13:41
@@ -30,14 +38,6 @@ public class DownLoadDialog extends Dialog {
 
     public DownLoadDialog(@NonNull Context context, String downUrl, String savePath) {
         super(context);
-        Aria.download(this).register();
-        // 修改最大下载数，调用完成后，立即生效
-        Aria.get(context).getDownloadConfig()
-                .setThreadNum(1)
-//                .setMaxSpeed(1024)
-                .setUpdateInterval(50)
-                .setConvertSpeed(true);
-
         this.downUrl = downUrl;
         this.savePath = savePath;
         this.context = context;
@@ -51,61 +51,111 @@ public class DownLoadDialog extends Dialog {
         super(context, cancelable, cancelListener);
     }
 
-    @Download.onTaskPre
-    public void onTaskPre(DownloadTask task) {
-        name.setText(CommonUtil.formatFileSize(task.getFileSize()));
-    }
+//        name.setText(CommonUtil.formatFileSize(task.getFileSize()));
 
-    @Download.onTaskRunning
-    public void onTaskRunning(DownloadTask task) {
-        int p = task.getPercent();    //任务进度百分比
-        String speed = task.getConvertSpeed();    //转换单位后的下载速度，单位转换需要在配置文件中打开
-        info.setText(speed);
-        progressView.setProgress(p);
-    }
-    @Download.onTaskComplete
-    public void onTaskComplete(DownloadTask task) {
-        Log.d(TAG, "onTaskComplete: ");
-        progressView.setProgress(100);
-        info.setVisibility(View.INVISIBLE);
-        dismiss();
-    }
+//
+//    @Download.onTaskComplete
+//    public void onTaskComplete(DownloadTask task) {
+//        Log.d(TAG, "onTaskComplete: ");
+//        progressView.setProgress(100);
+//        info.setVisibility(View.INVISIBLE);
+//        dismiss();
+//    }
 
     private void setSetting() {
         setCanceledOnTouchOutside(false);//点击外部Dialog不会消失
         Window dialogWindow = getWindow();
         dialogWindow.setGravity(Gravity.CENTER);//设置dialog显示居中
-//        dialogWindow.setWindowAnimations();设置动画效果
+    }
 
-
-//        WindowManager windowManager = ((Activity)context).getWindowManager();
-//        Display display = windowManager.getDefaultDisplay();
-//        WindowManager.LayoutParams lp = getWindow().getAttributes();
-//        lp.width = display.getWidth()*4/5;// 设置dialog宽度为屏幕的4/5
-//        getWindow().setAttributes(lp);
+    private String byte2Other(long length) {
+        long size = length / 1024;
+        if (size < 1024) {
+            return size + "KB";
+        } else {
+            return size / 1024 + "MB";
+        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setSetting();
-        setContentView(R.layout.dialog_load);
+        setContentView(R.layout.dialog_download);
         initView();
+        OkHttpClient okHttpClient = new OkHttpClient();
 
-        long taskId = Aria.download(this)
-                .load(downUrl)     //读取下载地址
-                .setFilePath(savePath) //设置文件保存的完整路径
-                .create();   //创建并启动下载
+        Request request = new Request.Builder().url(downUrl).build();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                // 下载失败
+                e.printStackTrace();
+                Log.d(TAG, "download failed");
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                InputStream is = null;
+                byte[] buf = new byte[2048];
+                int len = 0;
+                FileOutputStream fos = null;
+                // 储存下载文件的目录
+                try {
+                    is = response.body().byteStream();
+                    long total = response.body().contentLength();
+                    info.post(() -> {
+                        name.setText("文件大小：" + byte2Other(total));
+                    });
+                    File downloadFile = new File(savePath);
+                    fos = new FileOutputStream(downloadFile);
+                    long sum = 0;
+                    while ((len = is.read(buf)) != -1) {
+                        fos.write(buf, 0, len);
+                        sum += len;
+                        int p = (int) (sum * 1.0f / total * 100);
+                        String fileInfo = byte2Other(downloadFile.length());
+                        info.post(() -> {
+                            info.setText(fileInfo);
+                            progressView.setProgress(p);
+                        });
+                    }
+                    fos.flush();
+                    Log.d(TAG, "download success");
+
+                    info.post(() -> {
+                        LoadingDialogUtils.show(((HomeAct) context));
+                    });
+                    ZipUtils.UnZipFolderDelOri(downloadFile.getAbsolutePath(),
+                            FileConfig.webFileSavePath(context));
+                    info.post(() -> {
+                        LoadingDialogUtils.dismiss();
+                        dismiss();
+                    });
+                    // 下载完成
+//                    listener.onDownloadSuccess();
+//                    Log.i("DOWNLOAD", "totalTime=" + (System.currentTimeMillis() - startTime));
+                } catch (Exception e) {
+                    e.printStackTrace();
+//                    listener.onDownloadFailed();
+                    Log.d(TAG, "download failed");
+                } finally {
+                    try {
+                        if (is != null)
+                            is.close();
+                    } catch (IOException e) {
+                    }
+                    try {
+                        if (fos != null)
+                            fos.close();
+                    } catch (IOException e) {
+                    }
+                }
+            }
+        });
 
     }
 
-
-    @Override
-    public void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        Log.d(TAG, "onDetachedFromWindow: ");
-        Aria.download(this).unRegister();
-    }
 
     NumProgressView progressView;
     TextView title, name, info;

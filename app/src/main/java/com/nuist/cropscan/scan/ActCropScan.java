@@ -10,6 +10,7 @@ import android.util.Log;
 import com.nuist.cropscan.ActPicture.ActCameraX;
 import com.nuist.cropscan.dialog.CropTipsDialog;
 import com.nuist.cropscan.dialog.EvalDialog;
+import com.nuist.cropscan.dialog.SnackUtil;
 import com.nuist.cropscan.scan.rule.FormatBitmap;
 import com.nuist.cropscan.tool.AniUtils;
 import com.nuist.cropscan.tool.LocalGps;
@@ -28,6 +29,7 @@ public class ActCropScan extends ActCameraX {
     long durTime = 500;
     private float angle = 0;
 
+    int turnCount = 0;
 
     @SuppressLint("WrongThread")
     @Override
@@ -57,6 +59,10 @@ public class ActCropScan extends ActCameraX {
 
         RotationListener rotationListener = new RotationListener(this, this);
         rotationListener.setSensorEventListener(senAngle -> {
+            if (++turnCount == 4) {
+                SnackUtil.showAutoDis(btnBack, "靠近目标识别更精准哦~");
+                turnCount = 0;
+            }
             angle = senAngle;
             //按钮旋转
             AniUtils.rotationAni(btnBack, angle, 300);
@@ -119,14 +125,15 @@ public class ActCropScan extends ActCameraX {
 
     @Override
     public void onBackPressed() {
-        if (hasNewCapture){
+        if (hasNewCapture) {
             //有新的识别操作，通知刷新
             setResult(101);
         }
 
         finish();
     }
-    private boolean hasNewCapture =false;
+
+    private boolean hasNewCapture = false;
 
     @Override
     public void clickCapture(Bitmap bitmap) {

@@ -4,9 +4,13 @@ package com.nuist.cropscan.dialog;
  * ->  tah9  2023/4/6 5:19
  */
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -18,54 +22,28 @@ import java.lang.ref.WeakReference;
 public class LoadingDialogUtils {
     private static AlertDialog loadingDialog;
     private static WeakReference<Activity> reference;
+    private static ObjectAnimator animator;
 
-    private static void init(Activity act) {
-        init(act, -1);
-    }
 
-    private static void init(Activity activity, int res) {
+    public static void show(Activity activity) {
         if (loadingDialog == null || reference == null || reference.get() == null || reference.get().isFinishing()) {
             reference = new WeakReference<>(activity);
             loadingDialog = new AlertDialog.Builder(reference.get()).create();
-            if (res > 0) {
-                View view = LayoutInflater.from(activity).inflate(res, null);
-                loadingDialog.setView(view);
-                loadingDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-                // 去掉阴影层，这样就没有暗淡色的背景了
+            View view = LayoutInflater.from(activity).inflate(R.layout.dialog_loading, null);
+            loadingDialog.setView(view);
+            ImageView pic = view.findViewById(R.id.pic_progress);
+            animator = ObjectAnimator.ofFloat(pic, "rotation", 0, 360);
+            animator.setRepeatCount(ValueAnimator.INFINITE);
+            animator.setInterpolator(new LinearInterpolator());
+            animator.start();
+            loadingDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            // 去掉阴影层，这样就没有暗淡色的背景了
 //                loadingDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-            } else {
-                loadingDialog.setMessage("加载中...");
-            }
             loadingDialog.setCancelable(false);
+            loadingDialog.show();
         }
     }
 
-    public static void setCancelable(boolean b) {
-//        if (loadingDialog == null) return;
-//        loadingDialog.setCancelable(b);
-    }
-//    public static void destroyOnCancel(Activity act){
-//        act.finish();
-//    }
-
-
-
-    /**
-     * 显示等待框
-     */
-    public static void show(Activity act) {
-        show(act, false);
-    }
-
-    public static void show(Activity act, boolean isCancelable) {
-        show(act, R.layout.dialog_loading, isCancelable);
-    }
-
-    public static void show(Activity activity, int res, boolean isCancelable) {
-        init(activity, res);
-        loadingDialog.show();
-        setCancelable(isCancelable);
-    }
 
     /**
      * 隐藏等待框
@@ -73,6 +51,8 @@ public class LoadingDialogUtils {
     public static void dismiss() {
         if (loadingDialog != null && loadingDialog.isShowing()) {
             loadingDialog.dismiss();
+            animator.cancel();
+            animator = null;
             loadingDialog = null;
             reference = null;
         }

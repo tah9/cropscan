@@ -1,6 +1,7 @@
 package com.nuist.cropscan.ActPicture.adapter;
 
 import android.content.Context;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,18 +29,25 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
 
     public static int width;
 
-    public GalleryAdapter(ArrayList<PictureBean> imgPaths, Context context, String path) {
+    public void updateList(ArrayList<PictureBean> newList) {
+        this.imgPaths = newList;
+        notifyDataSetChanged();
+    }
+
+    public GalleryAdapter(ArrayList<PictureBean> imgPaths, Context context) {
         this.imgPaths = imgPaths;
         width = Tools.getWidth(context);
-        rootPath = path;
+        rootPath = Environment.getExternalStorageDirectory().getAbsolutePath();
     }
 
     public interface click {
         void back(String path);
     }
+
     public click mClick;
-    public void setBack(click mmClick){
-        this.mClick=mmClick;
+
+    public void setBack(click mmClick) {
+        this.mClick = mmClick;
     }
 
     @NonNull
@@ -50,30 +58,21 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ViewHold
 //        pic.setScaleType(ImageView.ScaleType.CENTER_CROP);
 //        frameLayout.addView(pic, -1, (int) (width / 3f));
         return new ViewHolder(
-                LayoutInflater.from(parent.getContext()).inflate(R.layout.pic, null));
+                LayoutInflater.from(parent.getContext()).inflate(R.layout.recy_item_gallery_pic, null));
     }
+
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         PictureBean pictureBean = imgPaths.get(position);
         ImageView pic = holder.pic;
 //            Log.d(TAG, "onBindViewHolder: "+pcPathBean.path);
-        if (pictureBean.path.endsWith("gif")) {
-                /*
-                Glide加载gif会创建很多bitmap占用内存
-                 */
-            Glide.with(holder.itemView).asBitmap().load(rootPath + pictureBean.getPath())
+        Glide.with(holder.itemView).asBitmap().load(rootPath + pictureBean.getPath())
 //                    .skipMemoryCache(true)
 //                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .dontAnimate()
-                    .into(pic);
-        } else {
-            Glide.with(holder.itemView).load(rootPath + pictureBean.getPath())
-//                    .skipMemoryCache(true)
-//                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .dontAnimate()
-                    .into(pic);
-        }
+                .dontAnimate()
+                .into(pic);
+
         holder.tip.setText(pictureBean.getPath());
         holder.itemView.setOnClickListener(view -> {
             mClick.back(rootPath + pictureBean.getPath());

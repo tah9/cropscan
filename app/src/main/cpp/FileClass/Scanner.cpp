@@ -87,15 +87,24 @@ void doScan(const string &path) {
     std::string first_path = tempFileList.at(0).path;
     std::size_t last_pos = first_path.rfind('/');
     std::size_t last_pos2 = first_path.rfind('/', last_pos - 1);
+    std::string folder_path,folder_name;
+    if(last_pos==0){
+        folder_path="";
+        folder_name="";
+    }else{
+        folder_path =first_path.substr(0, last_pos2 + 1);
+        folder_name =first_path.substr(last_pos2 + 1, last_pos - last_pos2 - 1);
+    }
+
     /*
      * 多个线程共同操作一个图片集合，需加锁
      */
     mx->lock();
 
-    v_folder.emplace_back(first_path.substr(last_pos2 + 1, last_pos - last_pos2 - 1),
+    v_folder.emplace_back(folder_name,
                           first_path,
                           tempFileList.at(0).time,
-                          first_path.substr(0, last_pos),
+                          folder_path,
                           tempFileList.size());
     allFile.insert(allFile.end(), tempFileList.begin(), tempFileList.end());
     mx->unlock();

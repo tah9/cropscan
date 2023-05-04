@@ -49,7 +49,7 @@ public class LocalGps {
             act.setString("local", localJSON.toString());
             Log.d(TAG, "getAddress: " + localJSON);
             if (listener != null) {
-                Toast.makeText(act, "已获取到位置", Toast.LENGTH_SHORT).show();
+                Toast.makeText(act, "位置已更新", Toast.LENGTH_SHORT).show();
 //                SnackUtil.show(act,"");
                 listener.updateLocal(localJSON);
             }

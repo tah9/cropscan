@@ -1,10 +1,7 @@
 package com.nuist.cropscan;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.webkit.WebView;
 import android.widget.Toast;
 
@@ -12,22 +9,12 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.nuist.cropscan.base.BaseAct;
 import com.nuist.cropscan.base.FragWeb;
-import com.nuist.cropscan.dialog.DownLoadDialog;
 import com.nuist.cropscan.request.BASEURL;
 import com.nuist.cropscan.request.FileConfig;
-import com.nuist.cropscan.request.HttpOk;
-import com.nuist.cropscan.tool.FileUtils;
-import com.nuist.cropscan.dialog.LoadingDialogUtils;
 import com.nuist.cropscan.tool.LocalGps;
-import com.nuist.cropscan.tool.ZipUtils;
-
-import org.json.JSONObject;
-
-import java.io.File;
 
 public class ActWeb extends BaseAct {
     FragWeb fragWeb;
-
 
 
     @Override
@@ -35,8 +22,10 @@ public class ActWeb extends BaseAct {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.framelayout);
         new LocalGps(this);
+
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragWeb = new FragWeb(BASEURL.entireWebHost + "/#/main/home/" + optString("plant"));
+        String url = FileConfig.webFileUrlHome(context)+"#/main/home/"+optString("plant");
+        fragWeb = new FragWeb(url);
         fragmentTransaction.replace(R.id.frame, fragWeb).commit();
     }
 
@@ -49,8 +38,8 @@ public class ActWeb extends BaseAct {
         WebView webView = fragWeb.getWebView();
         String url = webView.getUrl();
         Log.d(TAG, "onBackPressed: " + url);
-        if (url.equals("file://" + FileConfig.webFileHome(context) + "#/home")
-                || url.equals("file://" + FileConfig.webFileHome(context) + "#/login")
+        if (url.equals(FileConfig.webFileUrlHome(context) + "#/home")
+                || url.equals(FileConfig.webFileUrlHome(context) + "#/login")
                 || url.equals(BASEURL.entireWebHost + "/#/home")
                 || url.equals(BASEURL.entireWebHost + "/#/login")
 

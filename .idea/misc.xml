@@ -5,6 +5,10 @@
       <map>
         <entry key="..\:/Project/android/cropscan/app/src/main/res/drawable/bg_login.xml" value="0.1825" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/drawable/bg_progressbar.xml" value="0.1825" />
+        <entry key="..\:/Project/android/cropscan/app/src/main/res/drawable/cir_bg.xml" value="0.1215" />
+        <entry key="..\:/Project/android/cropscan/app/src/main/res/drawable/cir_btn.xml" value="0.1215" />
+        <entry key="..\:/Project/android/cropscan/app/src/main/res/drawable/down.xml" value="0.113" />
+        <entry key="..\:/Project/android/cropscan/app/src/main/res/drawable/history.xml" value="0.1215" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/drawable/ic_launcher_background.xml" value="0.1825" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/drawable/item_scan_card.xml" value="0.1825" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/drawable/sao.xml" value="0.1" />
@@ -14,12 +18,15 @@
         <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/act_home.xml" value="0.22604166666666667" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/activity_act_camera_x.xml" value="0.13496376811594202" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/activity_act_login.xml" value="0.22604166666666667" />
+        <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/dialog_eval.xml" value="0.22604166666666667" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/dialog_load.xml" value="0.22604166666666667" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/dialog_loading.xml" value="0.22604166666666667" />
+        <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/dialog_select_folder.xml" value="0.22604166666666667" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/framelayout.xml" value="0.22604166666666667" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/gallery_main.xml" value="0.22604166666666667" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/item_disease.xml" value="0.22604166666666667" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/login_layout.xml" value="0.335" />
+        <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/recy_item_folder.xml" value="0.1" />
         <entry key="..\:/Project/android/cropscan/app/src/main/res/layout/register_layout.xml" value="0.22604166666666667" />
       </map>
     </option>

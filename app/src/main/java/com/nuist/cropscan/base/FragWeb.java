@@ -9,6 +9,8 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,10 +33,13 @@ import com.nuist.cropscan.ActPicture.ActGallery;
 import com.nuist.cropscan.ActWeb;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.dialog.EvalDialog;
+import com.nuist.cropscan.dialog.SnackUtil;
 import com.nuist.cropscan.request.BASEURL;
+import com.nuist.cropscan.request.FileConfig;
 import com.nuist.cropscan.scan.ActCropScan;
 import com.nuist.cropscan.dialog.LoadingDialogUtils;
 import com.nuist.cropscan.scan.rule.FormatBitmap;
+import com.nuist.cropscan.tool.ScreenUtil;
 import com.nuist.cropscan.tool.Tools;
 import com.nuist.guide.Act_Login;
 
@@ -68,7 +73,7 @@ public class FragWeb extends BaseFrag {
 
     ActivityResultLauncher<Intent> intentActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         //此处是跳转的result回调方法
-        if (result.getResultCode() == 101&&webView != null) {
+        if (result.getResultCode() == 101 && webView != null) {
             webView.loadUrl("javascript:window.location.reload(true)");
         }
     });
@@ -87,6 +92,9 @@ public class FragWeb extends BaseFrag {
         return value;
     }
 
+    /*
+    js将图片原图链接传给安卓，安卓拿到链接后读取bitmap解析
+     */
     @JavascriptInterface
     public void toEvalInfo(String url) {
         Log.d(TAG, "toEvalInfo: " + url);
@@ -98,6 +106,7 @@ public class FragWeb extends BaseFrag {
 
                 evalDialog.recordProcess(FormatBitmap.format(context, resource));
                 evalDialog.setDismissListener(() -> {
+
                 });
             }
 
@@ -116,8 +125,6 @@ public class FragWeb extends BaseFrag {
         Log.d(TAG, "setValue: " + key + "-" + value);
         setString(key, value);
     }
-
-
 
 
     @JavascriptInterface
@@ -167,6 +174,10 @@ public class FragWeb extends BaseFrag {
         setWebView();
         if (url != null) {
             webView.loadUrl(url);
+//            new Handler(Looper.getMainLooper()).postDelayed(()->{
+//
+//                webView.loadUrl(FileConfig.webFileHome(context)+"#/main/home/" + optString("plant"));
+//            },2000);
         }
         return view;
     }
@@ -175,7 +186,12 @@ public class FragWeb extends BaseFrag {
     private void setWebView() {
         WebSettings settings = webView.getSettings();
         //禁止调用外部浏览器
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+            }
+        });
         settings.setDomStorageEnabled(true);
         settings.setJavaScriptEnabled(true);
         //允许跨域

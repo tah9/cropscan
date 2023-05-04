@@ -9,6 +9,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -25,13 +26,15 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.nuist.cropscan.ActPicture.adapter.GalleryAdapter;
 import com.nuist.cropscan.ActPicture.bean.FolderBean;
 import com.nuist.cropscan.ActPicture.bean.PictureBean;
+import com.nuist.cropscan.ActPicture.dialog.SelectFolderDialog;
 import com.nuist.cropscan.ActPicture.event.AppbarLayoutEventListener;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.tool.ScreenUtil;
-import com.nuist.cropscan.tool.Tools;
 import com.nuist.cropscan.tool.img.BitmapUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class ActGallery extends AppCompatActivity {
     static {
@@ -44,10 +47,10 @@ public class ActGallery extends AppCompatActivity {
     private GalleryAdapter picAdapter;
     private String rootPath = Environment.getExternalStorageDirectory().getAbsolutePath();
 
-    //原生回调的图片总集
+    //原生回调的照片总集
     ArrayList<PictureBean> totalList = new ArrayList<>();
 
-    //单文件夹内的图片集
+    //单文件夹内的照片集
     ArrayList<PictureBean> childrenList = new ArrayList<>();
 
     //所有文件夹
@@ -65,6 +68,8 @@ public class ActGallery extends AppCompatActivity {
     private ImageView frontMask;
     private ImageView backFront;
     private TextView tvTitle;
+    private SelectFolderDialog folderDialog;
+    private LinearLayout layoutTitle;
 
     public native void native_scan(String rootPath);
 
@@ -74,13 +79,53 @@ public class ActGallery extends AppCompatActivity {
     int flag = 0;
     String coverPath;
 
-    private String getCoverPath() {
-        return rootPath + (activeFolderIndex == -1 ?
-                totalList.get(0).getPath() : folderList.get(0).getPath());
+
+    private void updateChildrenFolder() {
+        new Thread(() -> {
+            childrenList.clear();
+            FolderBean folder = folderList.get(activeFolderIndex);
+            String folderPath = folder.getPath() + folder.getName();
+            Log.d(TAG, folder.toString());
+
+            for (PictureBean pictureBean : totalList) {
+                String imgPath = pictureBean.getPath();
+                if ((imgPath.lastIndexOf("/") == folderPath.lastIndexOf("/") + folder.getName().length() + 1)
+                        && (imgPath.contains(folderPath) || folder.getPath().isEmpty())) {
+                    childrenList.add(pictureBean);
+                }
+            }
+            Collections.sort(childrenList, (o1, o2) -> {
+                return Long.compare(o2.time, o1.time);
+            });
+            runOnUiThread(() -> {
+                recyclerView.scrollToPosition(0);
+                picAdapter.updateList(childrenList);
+                disPlayCover();
+                barLayout.setExpanded(true);
+            });
+        }).start();
     }
 
+
     private void disPlayCover() {
+        try {
+            this.coverPath = rootPath + (activeFolderIndex == -1 ?
+                    totalList.get(0).getPath() : childrenList.get(0).getPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         runOnUiThread(() -> {
+            if (activeFolderIndex != -1) {
+                FolderBean folder = folderList.get(activeFolderIndex);
+
+                tvNumberTip.setText(childrenList.size() + "张照片");
+                tvMainTip.setText(folder.getName().isEmpty() ? "根目录" : folder.getName());
+                tvPathTip.setText(rootPath + folder.getPath());
+                tvTitle.setText(folder.getName().isEmpty() ? "根目录" : folder.getName());
+            } else {
+
+            }
+
             Glide.with(bgPicFront).load(coverPath).into(bgPicFront);
             CustomTarget<Bitmap> customTarget = new CustomTarget<Bitmap>() {
                 @Override
@@ -111,22 +156,24 @@ public class ActGallery extends AppCompatActivity {
      */
     public void nativeCallbackFolder(ArrayList<FolderBean> nativeList) {
         folderList.addAll(nativeList);
-        for (FolderBean folderBean : nativeList) {
-            Log.d(TAG, "nativeCallbackFolder: " + folderBean);
-        }
+        Collections.sort(folderList, (o1, o2) -> {
+            return Long.compare(o2.getTime(), o1.getTime());
+        });
+//        for (FolderBean folderBean : nativeList) {
+//            Log.d(TAG, "nativeCallbackFolder: " + folderBean);
+//        }
         runOnUiThread(() -> {
-            tvMainTip.setText(folderList.size() + "个图片文件夹");
+            tvMainTip.setText(folderList.size() + "个照片文件夹");
         });
     }
 
-    //native图片回调，非主线程
+    //native照片回调，非主线程
     public void nativeCallback(ArrayList<PictureBean> nativeList) {
         totalList.addAll(nativeList);
         if (picAdapter == null) {
             return;
         }
         if (activeFolderIndex == -1 && coverPath == null) {
-            coverPath = getCoverPath();
             disPlayCover();
         }
 
@@ -138,7 +185,7 @@ public class ActGallery extends AppCompatActivity {
 //                Toast.makeText(context, "页面启动" + startSpendTime + "ms\n扫描消耗" + (System.currentTimeMillis() - startTime) + "ms", Toast.LENGTH_LONG).show();
                 Log.d(TAG, "nativeCallback: " + "页面启动" + startSpendTime + "ms\n扫描消耗" + (System.currentTimeMillis() - startTime) + "ms");
             }
-            tvNumberTip.setText(totalList.size() + "张图片");
+            tvNumberTip.setText(totalList.size() + "张照片");
             picAdapter.notifyItemRangeInserted(
                     totalList.size() - nativeList.size(), nativeList.size());
             picAdapter.notifyItemRangeChanged(
@@ -178,8 +225,6 @@ public class ActGallery extends AppCompatActivity {
             startTime = System.currentTimeMillis();
         }
 
-        Log.d(TAG, "onCreate: " + System.currentTimeMillis());
-
         //native后台扫描线程
         new Thread(() -> {
             native_scan(rootPath);
@@ -214,7 +259,7 @@ public class ActGallery extends AppCompatActivity {
         recyclerView.setItemAnimator(null);
         gridLayoutManager = new GridLayoutManager(context, 4);
         recyclerView.setLayoutManager(gridLayoutManager);
-        picAdapter = new GalleryAdapter(totalList, context, rootPath);
+        picAdapter = new GalleryAdapter(totalList, context);
         picAdapter.setBack(path -> {
             setResult(RESULT_OK, new Intent().putExtra("path", path));
             finish();
@@ -230,13 +275,16 @@ public class ActGallery extends AppCompatActivity {
         tvPathTip = findViewById(R.id.tv_path_tip);
         tvNumberTip = findViewById(R.id.tv_number_tip);
         back_front = findViewById(R.id.back_front);
+        back_front.setOnClickListener(v -> {
+            onBackPressed();
+        });
         barLayout.addOnOffsetChangedListener(new AppbarLayoutEventListener() {
             @Override
             protected void collapsed() {
                 Log.d(TAG, "collapsed: ");
                 bgPicFront.setImageAlpha(0);
                 invisibleViews(tvMainTip, tvNumberTip, tvPathTip);
-                visibleViews(tvTitle);
+                visibleViews(layoutTitle);
             }
 
             @Override
@@ -249,39 +297,61 @@ public class ActGallery extends AppCompatActivity {
 
             @Override
             protected void burst() {
-                invisibleViews(tvTitle);
+//                if (aniRunSum == 0) {
+                invisibleViews(layoutTitle);
                 visibleViews(tvMainTip, tvNumberTip, tvPathTip);
+//                }
             }
         });
         frontMask = findViewById(R.id.front_mask);
         backFront = findViewById(R.id.back_front);
         tvTitle = findViewById(R.id.tv_title);
 
+        tvTitle.setOnClickListener(v -> {
+            folderDialog = new SelectFolderDialog(context, folderList);
+            layoutTitle.setVisibility(View.INVISIBLE);
+            folderDialog.setOnDismissListener(dialog -> {
+                layoutTitle.setVisibility(View.VISIBLE);
+            });
+            folderDialog.setTargetClickListener(position -> {
+                layoutTitle.setVisibility(View.VISIBLE);
+                Log.d(TAG, "initView: " + position);
+                activeFolderIndex = position;
+                updateChildrenFolder();
+            });
+        });
+        layoutTitle = findViewById(R.id.layout_title);
     }
 
     private int duration = 100;
+//    private int aniRunSum = 0;
 
     private void visibleViews(View... views) {
         for (View view : views) {
+//            aniRunSum++;
             view.setVisibility(View.VISIBLE);
-            view.setScaleX(0f);
-            view.setScaleY(0f);
-            view.animate()
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(duration);
+//            view.setScaleX(0f);
+//            view.setScaleY(0f);
+//            view.animate()
+//                    .scaleX(1f)
+//                    .scaleY(1f)
+//                    .setDuration(duration).withEndAction(() -> {
+//                        aniRunSum--;
+//                    });
         }
     }
 
     private void invisibleViews(View... views) {
         for (View view : views) {
-            view.setVisibility(View.VISIBLE);
-            view.animate()
-                    .scaleX(0f)
-                    .scaleY(0f)
-                    .setDuration(duration).withEndAction(() -> {
-                        view.setVisibility(View.INVISIBLE);
-                    });
+//            aniRunSum++;
+            view.setVisibility(View.INVISIBLE);
+//            view.animate()
+//                    .scaleX(0f)
+//                    .scaleY(0f)
+//                    .setDuration(duration).withEndAction(() -> {
+//                        view.setVisibility(View.INVISIBLE);
+//                        aniRunSum--;
+//                    });
         }
     }
 }
