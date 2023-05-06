@@ -10,7 +10,16 @@ import org.json.JSONObject;
  */
 public class TRect {
     Rect rect;
-    String name=null;
+    String name = null;
+    float score;
+
+    public float getScore() {
+        return score;
+    }
+
+    public void setScore(float score) {
+        this.score = score;
+    }
 
     public int left;
     public int right;
@@ -19,7 +28,7 @@ public class TRect {
     private Bitmap rectBitmap;
 
     public void setRectBitmap(Bitmap bitmap) {
-        this.rectBitmap=Bitmap.createBitmap(bitmap, rect.left, rect.top, rect.width(), rect.height());
+        this.rectBitmap = Bitmap.createBitmap(bitmap, rect.left, rect.top, rect.width(), rect.height());
     }
 
     public void setBitmap(Bitmap bitmap) {

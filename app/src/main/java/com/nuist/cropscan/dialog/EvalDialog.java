@@ -1,11 +1,12 @@
 package com.nuist.cropscan.dialog;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,30 +15,33 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.Nullable;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.material.appbar.AppBarLayout;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.base.BaseAct;
-import com.nuist.request.BASEURL;
-import com.nuist.tool.dialog.SnackUtil;
-import com.nuist.webview.FileConfig;
-import com.nuist.request.HttpOk;
 import com.nuist.cropscan.scan.ActCropScan;
 import com.nuist.cropscan.scan.CropResultAdapter;
 import com.nuist.cropscan.scan.ScanLayoutDispatch;
+import com.nuist.cropscan.scan.rule.FormatBitmap;
 import com.nuist.cropscan.scan.rule.FormatTRectList;
+import com.nuist.cropscan.view.ScanLayout;
+import com.nuist.cropscan.view.entiry.TRect;
+import com.nuist.request.BASEURL;
+import com.nuist.request.HttpOk;
+import com.nuist.tool.dialog.RippleDialog;
 import com.nuist.tool.img.Base64Until;
 import com.nuist.tool.screen.ScreenUtil;
 import com.nuist.tool.screen.Tools;
-import com.nuist.cropscan.view.ScanLayout;
-import com.nuist.cropscan.view.entiry.TRect;
+import com.nuist.webview.FileConfig;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -55,9 +59,9 @@ import okhttp3.Call;
 /**
  * ->  tah9  2023/5/2 17:19
  */
-public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelListener, DialogInterface.OnDismissListener {
+public class EvalDialog extends Dialog implements DialogInterface.OnCancelListener, DialogInterface.OnDismissListener {
     private ScanLayoutDispatch dispatch;
-    private BaseAct act;
+    private BaseAct context;
     private AppBarLayout barLayout;
     private ScanLayout scanLayout;
     private RecyclerView recyCrop;
@@ -74,8 +78,9 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
 
     public EvalDialog(@NonNull Context context, BaseAct act) {
         super(context);
-        this.act = act;
+        this.context = act;
         show();
+        RippleDialog.show(context);
     }
 
     /*
@@ -91,11 +96,11 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
     @Override
     public void show() {
 
-        View root = LayoutInflater.from(act).inflate(R.layout.dialog_eval, null);
-        setView(root);
+        View root = LayoutInflater.from(context).inflate(R.layout.dialog_eval, null);
+        setContentView(root);
         initView(root);
 
-        dispatch = new ScanLayoutDispatch((int) (Tools.fullScreenHeight(act) * 0.75f - Tools.dpToPx(act, 50)),
+        dispatch = new ScanLayoutDispatch((int) (Tools.fullScreenHeight(context) * 0.75f - Tools.dpToPx(context, 50)),
                 barLayout);
         setOnDismissListener(this);
         setOnCancelListener(this);
@@ -105,7 +110,6 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
         setCanceledOnTouchOutside(false);
         super.show();
 
-//        SnackUtil.showAutoDis(root, "服务器算力有限，识别较慢请耐心等待~");
     }
 
     @Override
@@ -143,7 +147,7 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
 
         ImageView bgPic = view.findViewById(R.id.bg_pic);
         ViewGroup.LayoutParams layoutParams = bgPic.getLayoutParams();
-        layoutParams.height = Tools.fullScreenHeight(act);
+        layoutParams.height = Tools.fullScreenHeight(context);
         bgPic.setLayoutParams(layoutParams);
     }
 
@@ -161,75 +165,97 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
 
 
     public void beginProcess(Bitmap bitmap) {
-        ((ActCropScan) act).localGps.setListener(jsonObject -> {
+        ((ActCropScan) context).localGps.setListener(jsonObject -> {
             uploadOriginal(oriBase64, jsonObject);
         });
-
         process(bitmap);
     }
 
-    public void recordProcess(Bitmap bitmap) {
-        process(bitmap);
+    public void recordProcess(String url) {
+        new Thread(() -> {
+            CustomTarget<Bitmap> customTarget = new CustomTarget<Bitmap>() {
+
+                @Override
+                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                    process(resource);
+                }
+
+                @Override
+                public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                }
+            };
+            Glide.with(context).asBitmap().load(url).into(customTarget);
+        }).start();
     }
 
-    public void process(Bitmap bitmap) {
-        scanLayout.setMask(bitmap);
-        oriBase64 = Base64Until.bit2B64(bitmap);
-        try {
-            encodeBase64 = URLEncoder.encode(oriBase64, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-        HttpOk.getInstance().toBDApi("https://aip.baidubce.com/rest/2.0/image-classify/v1/multi_object_detect",
-                "24.9cec12da92453b98fbfa79dca02fac64.2592000.1685101380.282335-32587397",
-                encodeBase64, o -> {
-                    JSONArray bdResult = o.optJSONArray("result");
-                    Log.d(TAG, "process: " + bdResult);
-                    //百度未识别到个体
-                    if (bdResult == null || bdResult.length() == 0) {
-                        oneTarget(bitmap);
-                    } else {
-                        for (int i = 0; i < bdResult.length(); i++) {
-                            JSONObject rectObject = bdResult.optJSONObject(i).optJSONObject("location");
-                            rectList.add(new TRect(rectObject, null));
+
+    public void process(Bitmap bit) {
+        new Thread(() -> {
+
+            //裁剪bitmap上下部分
+            Bitmap bitmap = FormatBitmap.format(context, bit);
+            context.runOnUiThread(() -> {
+                scanLayout.setMask(bitmap);
+            });
+            oriBase64 = Base64Until.bit2B64(bitmap);
+            try {
+                encodeBase64 = URLEncoder.encode(oriBase64, StandardCharsets.UTF_8.toString());
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+            HttpOk.getInstance().toBDApi("https://aip.baidubce.com/rest/2.0/image-classify/v1/multi_object_detect",
+                    "24.9cec12da92453b98fbfa79dca02fac64.2592000.1685101380.282335-32587397",
+                    encodeBase64, o -> {
+                        RippleDialog.dismiss();
+                        JSONArray bdResult = o.optJSONArray("result");
+                        Log.d(TAG, "process: " + bdResult);
+                        //百度未识别到个体
+                        if (bdResult == null || bdResult.length() == 0) {
+                            oneTarget(bitmap);
+                        } else {
+                            for (int i = 0; i < bdResult.length(); i++) {
+                                JSONObject rectObject = bdResult.optJSONObject(i).optJSONObject("location");
+                                rectList.add(new TRect(rectObject, null));
+                            }
+
+                        }
+                        FormatTRectList formatTRectList = new FormatTRectList(rectList, context);
+                        rectList = formatTRectList.formatList();
+
+                        if (rectList.size() == 0) {
+                            oneTarget(bitmap);
+                        } else {
+                            //截取框内bitmap
+                            for (int i = 0; i < rectList.size(); i++) {
+                                TRect rect = rectList.get(i);
+                                rect.setRectBitmap(bitmap);
+                            }
                         }
 
-                    }
-                    FormatTRectList formatTRectList = new FormatTRectList(rectList, act);
-                    rectList = formatTRectList.formatList();
+                        recyCrop.setLayoutManager(new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false));
+                        cropResultAdapter = new CropResultAdapter(rectList, context, scanLayout.getActivateIndex());
+                        recyCrop.setAdapter(cropResultAdapter);
 
-                    if (rectList.size() == 0) {
-                        oneTarget(bitmap);
-                    } else {
-                        //截取框内bitmap
-                        for (int i = 0; i < rectList.size(); i++) {
-                            TRect rect = rectList.get(i);
-                            rect.setRectBitmap(bitmap);
-                        }
-                    }
+                        scanLayout.setTargetClickListener(position -> {
+                            loadWebView("识别中~", 0);
+                            recyCrop.scrollToPosition(position);
+                            cropResultAdapter.updateActivateIndex(scanLayout.getActivateIndex());
 
-                    recyCrop.setLayoutManager(new LinearLayoutManager(act, RecyclerView.HORIZONTAL, false));
-                    cropResultAdapter = new CropResultAdapter(rectList, act, scanLayout.getActivateIndex());
-                    recyCrop.setAdapter(cropResultAdapter);
+                            Log.d(TAG, "ClickListener: " + position);
+                            TRect tRect = rectList.get(position);
+                            if (tRect.getName() == null && !scanLayout.getBoxViewAt(position).isLoad()) {
+                                scanLayout.getBoxViewAt(position).setLoad(true);
+                                evalImg(position);
+                            }
 
-                    scanLayout.setTargetClickListener(position -> {
-                        loadWebView("识别中~");
-                        recyCrop.scrollToPosition(position);
-                        cropResultAdapter.updateActivateIndex(scanLayout.getActivateIndex());
-
-                        Log.d(TAG, "ClickListener: " + position);
-                        TRect tRect = rectList.get(position);
-                        if (tRect.getName() == null && !scanLayout.getBoxViewAt(position).isLoad()) {
-                            scanLayout.getBoxViewAt(position).setLoad(true);
-                            evalImg(position);
-                        }
-
-                        if (tRect.getName() != null) {
-                            loadWebView(tRect.getName());
-                        }
+                            if (tRect.getName() != null) {
+                                loadWebView(tRect.getName(), tRect.getScore());
+                            }
+                        });
+                        scanLayout.setList(rectList);
                     });
-                    scanLayout.setList(rectList);
-                });
+        }).start();
     }
 
 
@@ -258,9 +284,18 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
         settings.setAllowFileAccess(true);
     }
 
-    private void loadWebView(String name) {
+    private void loadWebView(String name, float score) {
         initializeWebView();
-        String url = FileConfig.webFileUrlHome(act) + "#/appResult/" + name;
+        String url;
+        Log.d(TAG, "name: " + name);
+        Log.d(TAG, "score: " + score);
+        if (name.equals("[default]")) {
+            url = FileConfig.webFileUrlHome(context) + "#/appResult/不是病害叶片哦~";
+
+        } else {
+            url = FileConfig.webFileUrlHome(context) + "#/appResult/" + name;
+
+        }
         webView.loadUrl(url);
         Log.d(TAG, ": " + url);
         webView.loadUrl("javascript:window.location.reload( true )");
@@ -278,15 +313,9 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
         map.put("latitude", localJson.optString("latitude"));
 
         HttpOk.getInstance().postOwnerUrlFormData(
-                map, "/classify/" + act.optString("uid"), o -> {
+                map, "/classify/" + context.optString("uid"), o -> {
                     Log.d(TAG, "uploadOriginal: " + o);
                 });
-//        Toast.makeText(act, "", Toast.LENGTH_LONG).show();
-//        Toast toast = Toast.makeText(act, "服务器算力有限，识别较慢请等待\n靠近拍摄识别结果更精准", Toast.LENGTH_LONG);
-//        toast.setGravity(Gravity.CENTER, 0, 0);
-//        toast.show();
-
-//        SnackUtil.show(act,"");
     }
 
     /*
@@ -308,25 +337,16 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
                     TRect rect = rectList.get(index);
                     String name = object.optString("name");
                     rect.setName(name);
+                    float score = Float.parseFloat(object.optString("score").substring(0, 4));
+                    rect.setScore(score);
                     rectList.set(index, rect);
 
                     scanLayout.notifyItemLoadEnd(index, rect);
 
                     if (scanLayout.getActivateIndex() == index) {
-                        loadWebView(results.toString());
+                        loadWebView(name, score);
                     }
                 }));
-//        requestList.add(HttpOk.getInstance().postToOtherUrl(map, BASEURL.flaskHost + "/classify", flaskResult -> {
-////        requestList.add(HttpOk.getInstance().postToOwnerUrl(map, "/classify/" + actCropScan.optString("uid"), flaskResult -> {
-//            TRect rect = rectList.get(index);
-//            rect.setName(flaskResult.optString("name"));
-//            rectList.set(index, rect);
-//            scanLayout.notifyItemLoadEnd(index, rect);
-//
-//            if (scanLayout.getActivateIndex() == index) {
-//                loadWebView(rect.getName());
-//            }
-//        }));
     }
 
 }

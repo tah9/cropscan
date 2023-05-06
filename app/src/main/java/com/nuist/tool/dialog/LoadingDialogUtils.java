@@ -7,6 +7,7 @@ package com.nuist.tool.dialog;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.Dialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -20,7 +21,7 @@ import java.lang.ref.WeakReference;
 
 
 public class LoadingDialogUtils {
-    private static AlertDialog loadingDialog;
+    private static Dialog loadingDialog;
     private static WeakReference<Activity> reference;
     private static ObjectAnimator animator;
 
@@ -30,7 +31,7 @@ public class LoadingDialogUtils {
             reference = new WeakReference<>(activity);
             loadingDialog = new AlertDialog.Builder(reference.get()).create();
             View view = LayoutInflater.from(activity).inflate(R.layout.dialog_loading, null);
-            loadingDialog.setView(view);
+            loadingDialog.setContentView(view);
             ImageView pic = view.findViewById(R.id.pic_progress);
             animator = ObjectAnimator.ofFloat(pic, "rotation", 0, 360);
             animator.setRepeatCount(ValueAnimator.INFINITE);

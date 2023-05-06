@@ -7,5 +7,5 @@ import android.os.Environment;
  */
 public class GalleryConfig {
     public static String rootPath= Environment.getExternalStorageDirectory().getAbsolutePath();
-
 }
+

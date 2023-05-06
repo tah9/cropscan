@@ -15,11 +15,16 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
+import com.nuist.cropscan.scan.rule.CropConfig;
 import com.nuist.cropscan.view.entiry.TRect;
+import com.nuist.tool.screen.ScreenUtil;
+import com.nuist.tool.screen.Tools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +36,7 @@ public class ScanLayout extends ViewGroup {
 
     private Bitmap tempBitmap;
     private Canvas tempCanvas;
+
 
     public ScanLayout(@NonNull Context context) {
         super(context);
@@ -45,6 +51,21 @@ public class ScanLayout extends ViewGroup {
     public ScanLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
+    }
+
+    public interface TargetClickListener {
+        void targetClick(int position);
+    }
+
+    private TargetClickListener targetClickListener;
+
+    public void setTargetClickListener(TargetClickListener listener) {
+        this.targetClickListener = listener;
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        setMeasuredDimension(widthMeasureSpec, (int) (Tools.fullScreenHeight(getContext()) * CropConfig.CropViewHeightScale));
     }
 
     private final int cornerRadius = 25;
@@ -70,6 +91,7 @@ public class ScanLayout extends ViewGroup {
     }
 
     private void init() {
+
         setClipChildren(false);
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -89,6 +111,7 @@ public class ScanLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean b, int i, int i1, int i2, int i3) {
+
         for (int j = 0; j < getChildCount(); j++) {
             View child = getChildAt(j);
             Rect rect = rectList.get(j).getRect();
@@ -106,21 +129,12 @@ public class ScanLayout extends ViewGroup {
     }
 
     public void release() {
-        preIndex=-1;
+        preIndex = -1;
         removeAllViews();
         removeAllViewsInLayout();
         setBackground(null);
     }
 
-    public interface TargetClickListener {
-        void targetClick(int position);
-    }
-
-    private TargetClickListener targetClickListener;
-
-    public void setTargetClickListener(TargetClickListener listener) {
-        this.targetClickListener = listener;
-    }
 
     public void setList(List<TRect> rectList) {
         this.rectList = rectList;
@@ -191,7 +205,6 @@ public class ScanLayout extends ViewGroup {
 
         canvas.drawBitmap(tempBitmap, 0, 0, null);
     }
-
 
 
     private static final String TAG = "BoxImageView";

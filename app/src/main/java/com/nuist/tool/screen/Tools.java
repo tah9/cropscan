@@ -19,6 +19,8 @@ import android.view.WindowManager;
 
 import androidx.camera.core.ImageProxy;
 
+import com.nuist.cropscan.base.BaseAct;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -66,6 +68,12 @@ public class Tools {
             Field field = c.getField("status_bar_height");
             int x = (Integer) field.get(object);
             statusBarHeight = context.getResources().getDimensionPixelSize(x);
+            /*
+            安卓13尚未适配状态栏
+             */
+            if (statusBarHeight == 0) {
+                statusBarHeight = 100;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

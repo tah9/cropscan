@@ -3,7 +3,6 @@ package com.nuist.cropscan.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -104,7 +103,6 @@ public class NumProgressView extends View {
      */
 
     private int paintProgressWidthPx;
-    private Rect rect;
     private float baseline;
 
     public NumProgressView(Context context, AttributeSet attrs) {
@@ -199,7 +197,7 @@ public class NumProgressView extends View {
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        getWidthAndHeight();
+        getMeasure();
 
     }
 
@@ -207,7 +205,10 @@ public class NumProgressView extends View {
      * 得到视图等的高度宽度尺寸数据
      */
 
-    private void getWidthAndHeight() {
+    private void getMeasure() {
+        if (viewWidth != 0) {
+            return;
+        }
 
         //得到自定义视图的高度
 
@@ -217,9 +218,13 @@ public class NumProgressView extends View {
 
         viewCenterY = viewHeight / 2;
 
-        rect = new Rect();
-        paintText.getTextBounds("%", 0, 1, rect);
+
+        /*
+        获取基线高度
+         */
         Paint.FontMetrics fontMetrics = paintText.getFontMetrics();
+        Log.d(TAG, "fontMetrics.ascent: " + fontMetrics.ascent);
+        Log.d(TAG, "fontMetrics.descent: " + fontMetrics.descent);
         baseline = viewCenterY - (fontMetrics.ascent + fontMetrics.descent) / 2;
 
     }
@@ -245,22 +250,11 @@ public class NumProgressView extends View {
 //画左侧已经完成的进度条，长度为从Veiw左端到文字的左侧
 
         canvas.drawLine(startX, viewCenterY, currentMovedLength, viewCenterY, paintLeft);
-//
-//画右侧未完成的进度条，这个进度条的长度不是严格按照百分比来缩放的，因为文字的长度会变化，所以它的长度缩放比例也会变化
+//画右侧未完成的进度条
 
-//        if (progress < 10) {
-//
-//            canvas.drawLine(currentMovedLength + textWidth * 0.5f, viewCenterY, viewWidth, viewCenterY, paintRight);
-//
-//        } else if (progress < 100) {
-//
-//            canvas.drawLine(currentMovedLength + textWidth * 0.75f, viewCenterY, viewWidth, viewCenterY, paintRight);
-//
-//        } else {
 
         canvas.drawLine(startX + currentMovedLength + textWidth, viewCenterY, viewWidth, viewCenterY, paintRight);
 
-//        }
 
 //画文字(注意：文字要最后画，因为文字和进度条可能会有重合部分，所以要最后画文字，用文字盖住重合的部分)
 

@@ -77,7 +77,7 @@ public abstract class ActCameraX extends BaseAct {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ScreenUtil.setStatusBarBgColor(getWindow(), Color.parseColor("#303030"));
+        ScreenUtil.setTranslateStatusBar(getWindow());
     }
 
 

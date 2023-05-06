@@ -11,8 +11,8 @@ android {
         applicationId "com.nuist.cropscan"
         minSdk 21
         targetSdk 31
-        versionCode 5
-        versionName "2.3.3"
+        versionCode 6 //更新识别接口
+        versionName "2.3.3.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -35,7 +35,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

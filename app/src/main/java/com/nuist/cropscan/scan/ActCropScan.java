@@ -155,8 +155,7 @@ public class ActCropScan extends ActCameraX {
 
         evalDialog = new EvalDialog(context, this);
 
-        //裁剪bitmap上下部分后显示
-        evalDialog.beginProcess(FormatBitmap.format(context, bitmap));
+        evalDialog.beginProcess(bitmap);
         evalDialog.setDismissListener(() -> {
             evalDialog = null;
             switchCamera(true);

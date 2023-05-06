@@ -62,11 +62,11 @@ public class Act_Login extends BaseAct implements EasyPermissions.PermissionCall
             if (beLogin) {
                 HttpOk.getInstance().postToOwnerUrl(map, "/user/login", json -> {
                     if (json.optInt("code") == 200) {
-                        SnackUtil.showAutoDis(editEmail, "登录成功");
                         JSONObject data = json.optJSONObject("data");
                         setString("user", data.toString());
                         setString("uid", data.optString("id"));
-                        startActivity(new Intent(this, HomeAct.class));
+                        startActivity(new Intent(this, HomeAct.class)
+                                .putExtra("editEmail", editEmail.getEditableText().toString()));
                         finish();
                     } else if (json.optInt("code") == 40000) {
                         SnackUtil.showAutoDis(editEmail, json.optString("message"));

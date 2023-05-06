@@ -25,11 +25,13 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.nuist.cropscan.R;
+import com.nuist.cropscan.RippleView;
 import com.nuist.cropscan.base.BaseFrag;
 import com.nuist.cropscan.dialog.EvalDialog;
 import com.nuist.request.BASEURL;
 import com.nuist.cropscan.scan.ActCropScan;
 import com.nuist.cropscan.scan.rule.FormatBitmap;
+import com.nuist.tool.dialog.RippleDialog;
 import com.nuist.tool.screen.Tools;
 import com.nuist.guide.Act_Login;
 
@@ -86,24 +88,14 @@ public class FragWeb extends BaseFrag {
     @JavascriptInterface
     public void toEvalInfo(String url) {
         Log.d(TAG, "toEvalInfo: " + url);
-        CustomTarget<Bitmap> customTarget = new CustomTarget<Bitmap>() {
 
-            @Override
-            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                EvalDialog evalDialog = new EvalDialog(context, getBaseAct());
-
-                evalDialog.recordProcess(FormatBitmap.format(context, resource));
-                evalDialog.setDismissListener(() -> {
-
-                });
-            }
-
-            @Override
-            public void onLoadCleared(@Nullable Drawable placeholder) {
-
-            }
-        };
-        Glide.with(context).asBitmap().load(BASEURL.entireHost + url).into(customTarget);
+        getBaseAct().runOnUiThread(() -> {
+            EvalDialog evalDialog = new EvalDialog(context, getBaseAct());
+            evalDialog.recordProcess(BASEURL.entireHost + url);
+            evalDialog.setDismissListener(() -> {
+//
+            });
+        });
 
 
     }

@@ -18,32 +18,22 @@ public class SnackUtil {
     private static Snackbar snack;
 
     public static void showAutoDis(View view, String text) {
+        showAndTime(view, text, 2000);
+    }
+
+    public static void showAndTime(View view, String text, int durTime) {
         if (snack != null && snack.isShown()) {
             snack.dismiss();
         }
         snack = Snackbar.make(view.getContext(), view,
-                text, 3000);
+                text, durTime);
         snack.setAnimationMode(Snackbar.ANIMATION_MODE_FADE);
-
 
         activate(snack);
     }
 
     public static void showIndefinite(View view, String text) {
-        if (snack != null && snack.isShown()) {
-            snack.dismiss();
-        }
-        snack = Snackbar.make(view.getContext(), view,
-                text, BaseTransientBottomBar.LENGTH_INDEFINITE);
-        snack.setAnimationMode(Snackbar.ANIMATION_MODE_FADE);
-        snack.setAction("好的", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                snack.dismiss();
-            }
-        });
-
-        activate(snack);
+        showAndTime(view, text, BaseTransientBottomBar.LENGTH_INDEFINITE);
     }
 
     public static void activate(Snackbar snackbar) {

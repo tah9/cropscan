@@ -6,10 +6,15 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -73,6 +78,67 @@ public class HttpOk {
 //
 //    }
 
+
+
+    /*
+    文件下载
+     */
+
+    public Call download(String url, @Nullable String savePath, DownloadListener listener) {
+        Call call = okHttpClient.newCall(new Request.Builder().url(url).build());
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                long fileSize = response.body().contentLength();
+                handler.post(() -> {
+                    listener.FileSize(fileSize);
+                });
+
+                if (savePath == null) {
+                    return;
+                }
+                InputStream is = null;
+                byte[] buf = new byte[2048];
+                int len;
+                FileOutputStream fos = null;
+                try {
+                    is = response.body().byteStream();
+                    File downloadFile = new File(savePath);
+                    fos = new FileOutputStream(downloadFile);
+                    long sum = 0;
+                    while ((len = is.read(buf)) != -1) {
+                        fos.write(buf, 0, len);
+                        sum += len;
+                        int p = (int) (sum * 1.0f / fileSize * 100);
+                        handler.post(() -> {
+                            listener.Downloading(p);
+                        });
+                    }
+                    fos.flush();
+                    listener.End();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if (is != null)
+                            is.close();
+                    } catch (IOException e) {
+                    }
+                    try {
+                        if (fos != null)
+                            fos.close();
+                    } catch (IOException e) {
+                    }
+                }
+            }
+        });
+        return call;
+    }
 
     /*
     百度智能云接口

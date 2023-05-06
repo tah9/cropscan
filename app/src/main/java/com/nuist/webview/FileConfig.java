@@ -11,6 +11,6 @@ public class FileConfig {
     }
 
     public static String webFileUrlHome(Context context) {
-        return "file://"+ webFileSavePath(context) + "/index.html";
+        return "file://" + webFileSavePath(context) + "/index.html";
     }
 }
