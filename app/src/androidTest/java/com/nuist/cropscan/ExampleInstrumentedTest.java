@@ -12,7 +12,7 @@ import org.junit.runner.RunWith;
 
 import static org.junit.Assert.*;
 
-import com.nuist.cropscan.ActPicture.GalleryConfig;
+import com.nuist.gallery.GalleryConfig;
 
 import java.io.File;
 
@@ -41,7 +41,7 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         assertEquals("com.nuist.cropscan", appContext.getPackageName());
-        String rootPath = GalleryConfig.rootPath(appContext);
+        String rootPath = GalleryConfig.rootPath();
         File directory = Environment.getExternalStorageDirectory();
         Log.d(TAG, "useAppContext: "+directory.getPath());
         File[] files = directory.listFiles();

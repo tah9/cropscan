@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 public class NumProgressView extends View {
@@ -20,13 +21,13 @@ public class NumProgressView extends View {
      * 文字百分比的字体大小(sp)
      */
 
-    private int paintTextSize = 12;
+    private int paintTextSize = 10;
 
     /**
      * 左侧已完成进度条的颜色
      */
 
-    private int paintLeftColor = 0xff67aae4;
+    private int paintLeftColor = 0xff112b28;
 
     /**
      * 右侧未完成进度条的颜色
@@ -64,11 +65,16 @@ public class NumProgressView extends View {
 
     private int viewCenterY;
 
+    /*
+    进度条起点，留一部分空间给线首的圆形
+     */
+    private int startX = paintTextSize;
+
     /**
      * 画左边已完成进度条的画笔
      */
 
-    private Paint paintleft = new Paint();
+    private Paint paintLeft = new Paint();
 
     /**
      * 画右边未完成进度条的画笔
@@ -82,29 +88,24 @@ public class NumProgressView extends View {
 
     private Paint paintText = new Paint();
 
-    /**
-     * 要画的文字的宽度
-     */
-
-    private int textWidth;
 
     /**
      * 画文字时底部的坐标
      */
 
-    private float textBottomY;
 
     /**
      * 包裹文字的矩形
      */
 
-    private Rect rect = new Rect();
 
     /**
      * 文字总共移动的长度(即从0%到100%文字左侧移动的长度)
      */
 
-    private int totalMovedLength;
+    private int paintProgressWidthPx;
+    private Rect rect;
+    private float baseline;
 
     public NumProgressView(Context context, AttributeSet attrs) {
 
@@ -118,19 +119,6 @@ public class NumProgressView extends View {
 
     }
 
-    /**
-     * 得到两个整数之间的一个随机数
-     *
-     * @param start 较小的数
-     * @param end   较大的数
-     * @return
-     */
-
-    public int getRadomNumber(int start, int end) {
-
-        return (int) (start + Math.random() * (end - start));
-
-    }
 
     /**
      * 将dip或dp值转换为px值，保证尺寸大小不变
@@ -164,7 +152,7 @@ public class NumProgressView extends View {
 
 //设置进度条画笔的宽度
 
-        int paintProgressWidthPx = dip2px(context, paintProgressWidth);
+        paintProgressWidthPx = dip2px(context, paintProgressWidth);
 
 //设置百分比文字的尺寸
 
@@ -172,13 +160,15 @@ public class NumProgressView extends View {
 
 // 已完成进度条画笔的属性
 
-        paintleft.setColor(paintLeftColor);
+        paintLeft.setColor(paintLeftColor);
 
-        paintleft.setStrokeWidth(paintProgressWidthPx);
+        paintLeft.setStrokeWidth(paintProgressWidthPx);
 
-        paintleft.setAntiAlias(true);
+        paintLeft.setAntiAlias(true);
 
-        paintleft.setStyle(Paint.Style.FILL);
+        paintLeft.setStyle(Paint.Style.FILL);
+        //cap 设置起终点圆角
+        paintLeft.setStrokeCap(Paint.Cap.ROUND);
 
 // 未完成进度条画笔的属性
 
@@ -219,15 +209,7 @@ public class NumProgressView extends View {
 
     private void getWidthAndHeight() {
 
-//得到包围文字的矩形的宽高
-
-        paintText.getTextBounds("000%", 0, "000%".length(), rect);
-
-        textWidth = rect.width();
-
-        textBottomY = viewCenterY + rect.height() / 2;
-
-//得到自定义视图的高度
+        //得到自定义视图的高度
 
         int viewHeight = getMeasuredHeight();
 
@@ -235,9 +217,14 @@ public class NumProgressView extends View {
 
         viewCenterY = viewHeight / 2;
 
-        totalMovedLength = viewWidth - textWidth;
+        rect = new Rect();
+        paintText.getTextBounds("%", 0, 1, rect);
+        Paint.FontMetrics fontMetrics = paintText.getFontMetrics();
+        baseline = viewCenterY - (fontMetrics.ascent + fontMetrics.descent) / 2;
 
     }
+
+    private static final String TAG = "NumProgressView";
 
     @Override
 
@@ -245,39 +232,43 @@ public class NumProgressView extends View {
 
         super.onDraw(canvas);
 
+
 //得到float型进度
 
         float progressFloat = progress / 100.0f;
 
 //当前文字移动的长度
+        float textWidth = paintText.measureText(progress + "%");
 
-        float currentMovedLentgh = totalMovedLength * progressFloat;
+        float currentMovedLength = (viewWidth - textWidth - startX) * progressFloat;
 
 //画左侧已经完成的进度条，长度为从Veiw左端到文字的左侧
 
-        canvas.drawLine(0, viewCenterY, currentMovedLentgh, viewCenterY, paintleft);
-
+        canvas.drawLine(startX, viewCenterY, currentMovedLength, viewCenterY, paintLeft);
+//
 //画右侧未完成的进度条，这个进度条的长度不是严格按照百分比来缩放的，因为文字的长度会变化，所以它的长度缩放比例也会变化
 
-        if (progress < 10) {
+//        if (progress < 10) {
+//
+//            canvas.drawLine(currentMovedLength + textWidth * 0.5f, viewCenterY, viewWidth, viewCenterY, paintRight);
+//
+//        } else if (progress < 100) {
+//
+//            canvas.drawLine(currentMovedLength + textWidth * 0.75f, viewCenterY, viewWidth, viewCenterY, paintRight);
+//
+//        } else {
 
-            canvas.drawLine(currentMovedLentgh + textWidth * 0.5f, viewCenterY, viewWidth, viewCenterY, paintRight);
+        canvas.drawLine(startX + currentMovedLength + textWidth, viewCenterY, viewWidth, viewCenterY, paintRight);
 
-        } else if (progress < 100) {
-
-            canvas.drawLine(currentMovedLentgh + textWidth * 0.75f, viewCenterY, viewWidth, viewCenterY, paintRight);
-
-        } else {
-
-            canvas.drawLine(currentMovedLentgh + textWidth, viewCenterY, viewWidth, viewCenterY, paintRight);
-
-        }
+//        }
 
 //画文字(注意：文字要最后画，因为文字和进度条可能会有重合部分，所以要最后画文字，用文字盖住重合的部分)
 
-        canvas.drawText(progress + "%", currentMovedLentgh+(paintTextSize/2f), textBottomY, paintText);
+        canvas.drawText(progress + "%", currentMovedLength + paintTextSize, baseline, paintText);
+
 
     }
+
 
     /**
      * @param progress 外部传进来的当前进度

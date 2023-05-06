@@ -1,21 +1,28 @@
 
-# For more information about using CMake with Android Studio, read the
-# documentation: https://d.android.com/studio/projects/add-native-code.html
-
-# Sets the minimum version of CMake required to build the native library.
-
 cmake_minimum_required(VERSION 3.18.1)
 
 # Declares and names the project.
 
-set(CMAKE_CXX_STANDARD 11)
+# CMAKE_CXX_FLAGS是一个预定义的CMake变量，用于存储编译C++源文件所需的所有编译器标志
+# 设置编译器标志，指定c++11  （将-std=c++11附加到${CMAKE_CXX_FLAGS}变量的末尾）
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+
+# 定义一个变量来设置so库的名称，这里改完记得在java引用处改掉引用的so库名称
+set(GALLERY_LIBRARY_NAME native-gallery)
+
+
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions -frtti")
+## 去除未使用函数与变量
+#set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-        my-native
+        ${GALLERY_LIBRARY_NAME}
 
         # Sets the library as a shared library.
         SHARED
@@ -25,12 +32,8 @@ add_library( # Sets the name of the library.
 
 #添加子目录,将会调用子目录中的CMakeLists.txt
 #ADD_SUBDIRECTORY(FileClass)
+
 include_directories(src/main/cpp/FileClass)
-# Searches for a specified prebuilt library and stores the path as a
-# variable. Because CMake includes system libraries in the search path by
-# default, you only need to specify the name of the public NDK library
-# you want to add. CMake verifies that the library exists before
-# completing its build.
 
 find_library( # Sets the name of the path variable.
         log-lib
@@ -43,9 +46,23 @@ find_library( # Sets the name of the path variable.
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
-target_link_libraries( # Specifies the target library.
-        my-native
-
-        # Links the target library to the log library
+# 将log-lib库文件连接到自己的库
+target_link_libraries(
+        ${GALLERY_LIBRARY_NAME}
         # included in the NDK.
         ${log-lib})
+
+
+## 设置去除未使用代码的链接flag
+#SET_TARGET_PROPERTIES(${GALLERY_LIBRARY_NAME} PROPERTIES LINK_FLAGS "-Wl,--gc-sections")
+#SET_TARGET_PROPERTIES(${GALLERY_LIBRARY_NAME} PROPERTIES LINK_FLAGS "-Wl,--gc-sections,--icf=safe,-s")
+
+
+#
+## 将库文件打包和压缩到APK文件中
+#set_target_properties(${GALLERY_LIBRARY_NAME}
+#        PROPERTIES
+#        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}"
+#        LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}"
+#        LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}")
+#

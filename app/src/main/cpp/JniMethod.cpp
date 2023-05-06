@@ -3,7 +3,7 @@
 #include "ScanToJni.cpp"
 
 
-#define JNIREG_CLASS "com/nuist/cropscan/ActPicture/ActGallery"  //Java类的路径：包名+类名
+//声明java可以调用的native方法
 #define NUM_METHOES(x) ((int) (sizeof(x) / sizeof((x)[0]))) //获取方法的数量
 static JNINativeMethod method_table[] = {
         // 第一个参数a 是java native方法名，
@@ -40,7 +40,7 @@ JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 //    assert(env != NULL);
 
     // 注册native方法
-    if (!registerMethods(env, JNIREG_CLASS, method_table, NUM_METHOES(method_table))) {
+    if (!registerMethods(env, JNI_TARGET_CLASS, method_table, NUM_METHOES(method_table))) {
         return JNI_ERR;
     }
     LOGI("JNI_OnLoad");

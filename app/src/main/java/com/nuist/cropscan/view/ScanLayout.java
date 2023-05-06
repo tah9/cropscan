@@ -139,6 +139,7 @@ public class ScanLayout extends ViewGroup {
 
                 //更新view
                 openChildAndUpdateState(finalI);
+
             });
             addView(boxView);
         }

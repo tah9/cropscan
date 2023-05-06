@@ -25,16 +25,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.appbar.AppBarLayout;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.base.BaseAct;
-import com.nuist.cropscan.request.BASEURL;
-import com.nuist.cropscan.request.FileConfig;
-import com.nuist.cropscan.request.HttpOk;
+import com.nuist.request.BASEURL;
+import com.nuist.tool.dialog.SnackUtil;
+import com.nuist.webview.FileConfig;
+import com.nuist.request.HttpOk;
 import com.nuist.cropscan.scan.ActCropScan;
 import com.nuist.cropscan.scan.CropResultAdapter;
 import com.nuist.cropscan.scan.ScanLayoutDispatch;
 import com.nuist.cropscan.scan.rule.FormatTRectList;
-import com.nuist.cropscan.tool.img.Base64Until;
-import com.nuist.cropscan.tool.ScreenUtil;
-import com.nuist.cropscan.tool.Tools;
+import com.nuist.tool.img.Base64Until;
+import com.nuist.tool.screen.ScreenUtil;
+import com.nuist.tool.screen.Tools;
 import com.nuist.cropscan.view.ScanLayout;
 import com.nuist.cropscan.view.entiry.TRect;
 
@@ -104,7 +105,7 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
         setCanceledOnTouchOutside(false);
         super.show();
 
-        SnackUtil.showAutoDis(root, "服务器算力有限，识别较慢请耐心等待~");
+//        SnackUtil.showAutoDis(root, "服务器算力有限，识别较慢请耐心等待~");
     }
 
     @Override
@@ -275,14 +276,15 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
         map.put("image", base64);
         map.put("longitude", localJson.optString("longitude"));
         map.put("latitude", localJson.optString("latitude"));
+
         HttpOk.getInstance().postOwnerUrlFormData(
                 map, "/classify/" + act.optString("uid"), o -> {
                     Log.d(TAG, "uploadOriginal: " + o);
                 });
 //        Toast.makeText(act, "", Toast.LENGTH_LONG).show();
-        Toast toast = Toast.makeText(act, "服务器算力有限，识别较慢请等待\n靠近拍摄识别结果更精准", Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER, 0, 0);
-        toast.show();
+//        Toast toast = Toast.makeText(act, "服务器算力有限，识别较慢请等待\n靠近拍摄识别结果更精准", Toast.LENGTH_LONG);
+//        toast.setGravity(Gravity.CENTER, 0, 0);
+//        toast.show();
 
 //        SnackUtil.show(act,"");
     }
@@ -293,23 +295,38 @@ public class EvalDialog extends AlertDialog implements DialogInterface.OnCancelL
     private void evalImg(int index) {
         Map<String, Object> map = new HashMap<>();
         Bitmap rectOriginalBitmap = rectList.get(index).getRectBitmap();
-        map.put("image_type", "base64");
+//        map.put("image_type", "base64");
         map.put("image", Base64Until.bit2B64(rectOriginalBitmap));
 //        map.put("image", BitmapUtil.bit2B64(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)));
 
 //        FragWeb.getWebView().loadUrl("javascript:toEvalImg('" + json + "')");
 
-        requestList.add(HttpOk.getInstance().postToOtherUrl(map, BASEURL.flaskHost + "/classify", flaskResult -> {
-//        requestList.add(HttpOk.getInstance().postToOwnerUrl(map, "/classify/" + actCropScan.optString("uid"), flaskResult -> {
-            TRect rect = rectList.get(index);
-            rect.setName(flaskResult.optString("name"));
-            rectList.set(index, rect);
-            scanLayout.notifyItemLoadEnd(index, rect);
+        requestList.add(HttpOk.getInstance().postToOtherUrl(map, "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/classification/plant2?access_token=24.bb46cf73e20a924648b67ac89caec1c7.2592000.1685881181.282335-33202924",
+                o -> {
+                    JSONArray results = o.optJSONArray("results");
+                    JSONObject object = results.getJSONObject(0);
+                    TRect rect = rectList.get(index);
+                    String name = object.optString("name");
+                    rect.setName(name);
+                    rectList.set(index, rect);
 
-            if (scanLayout.getActivateIndex() == index) {
-                loadWebView(rect.getName());
-            }
-        }));
+                    scanLayout.notifyItemLoadEnd(index, rect);
+
+                    if (scanLayout.getActivateIndex() == index) {
+                        loadWebView(results.toString());
+                    }
+                }));
+//        requestList.add(HttpOk.getInstance().postToOtherUrl(map, BASEURL.flaskHost + "/classify", flaskResult -> {
+////        requestList.add(HttpOk.getInstance().postToOwnerUrl(map, "/classify/" + actCropScan.optString("uid"), flaskResult -> {
+//            TRect rect = rectList.get(index);
+//            rect.setName(flaskResult.optString("name"));
+//            rectList.set(index, rect);
+//            scanLayout.notifyItemLoadEnd(index, rect);
+//
+//            if (scanLayout.getActivateIndex() == index) {
+//                loadWebView(rect.getName());
+//            }
+//        }));
     }
 
 }

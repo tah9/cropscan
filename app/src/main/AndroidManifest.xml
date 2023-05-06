@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
     <application
         android:allowBackup="true"
@@ -26,6 +27,15 @@
         android:theme="@style/Theme.Cropscan"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.nuist.cropscan.FileProvider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
         <activity
             android:name="com.nuist.guide.Act_Login"
             android:exported="true">
@@ -36,7 +46,7 @@
 <!--            </intent-filter>-->
         </activity>
         <activity
-            android:name=".ActWeb"
+            android:name="com.nuist.webview.ActWeb"
             android:exported="true">
 
         </activity>
@@ -57,7 +67,7 @@
              </intent-filter>
         </activity>
         <activity
-            android:name=".ActPicture.ActGallery"
+            android:name="com.nuist.gallery.ActGallery"
             android:exported="true"
             android:process=":aidl" >
 <!--            <intent-filter>-->

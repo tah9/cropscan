@@ -15,9 +15,9 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.nuist.cropscan.HomeAct;
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.base.BaseAct;
-import com.nuist.cropscan.dialog.SnackUtil;
-import com.nuist.cropscan.request.HttpOk;
-import com.nuist.cropscan.tool.AniUtils;
+import com.nuist.tool.dialog.SnackUtil;
+import com.nuist.request.HttpOk;
+import com.nuist.tool.AniUtils;
 
 import org.json.JSONObject;
 

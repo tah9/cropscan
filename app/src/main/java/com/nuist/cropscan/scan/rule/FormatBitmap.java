@@ -6,7 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 
-import com.nuist.cropscan.tool.Tools;
+import com.nuist.tool.screen.Tools;
 
 /**
  * ->  tah9  2023/4/30 15:50

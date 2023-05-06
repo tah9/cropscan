@@ -7,14 +7,15 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.nuist.cropscan.ActPicture.ActCameraX;
+import com.nuist.gallery.ActCameraX;
 import com.nuist.cropscan.dialog.CropTipsDialog;
 import com.nuist.cropscan.dialog.EvalDialog;
-import com.nuist.cropscan.dialog.SnackUtil;
+import com.nuist.tool.dialog.SnackUtil;
 import com.nuist.cropscan.scan.rule.FormatBitmap;
-import com.nuist.cropscan.tool.AniUtils;
-import com.nuist.cropscan.tool.LocalGps;
-import com.nuist.cropscan.tool.Tools;
+import com.nuist.tool.AniUtils;
+import com.nuist.tool.sensor.LocalGps;
+import com.nuist.tool.screen.Tools;
+import com.nuist.tool.sensor.RotationListener;
 
 /**
  * ->  tah9  2023/3/23 19:41

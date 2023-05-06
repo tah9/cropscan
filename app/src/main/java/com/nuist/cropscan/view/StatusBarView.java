@@ -1,17 +1,12 @@
 package com.nuist.cropscan.view;
 
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import com.nuist.cropscan.tool.Tools;
-
-import java.lang.reflect.Field;
+import com.nuist.tool.screen.Tools;
 
 /**
  * ->  tah9  2023/4/28 0:02

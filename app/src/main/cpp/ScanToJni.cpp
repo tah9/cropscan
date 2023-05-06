@@ -14,6 +14,12 @@
 #include "unistd.h"
 #include "FileClass/Scanner.h"
 
+
+#define JNI_TARGET_CLASS "com/nuist/gallery/ActGallery"  //Java类的路径：包名+类名
+#define JNI_CLASS_PICTURE_BEAN "com/nuist/gallery/bean/PictureBean"  //Java Bean类路径
+#define JNI_CLASS_FOLDER_BEAN "com/nuist/gallery/bean/FolderBean"
+
+
 static jclass jcls;
 static jclass pc_cls;
 static jclass folder_cls;
@@ -134,7 +140,8 @@ void scan(JNIEnv *env, jobject thiz, jstring root_path) {
 
     LOGI("scan begin time> %ld", getMs());
     jobj = env->NewGlobalRef(thiz);
-    jcls = (jclass) env->NewGlobalRef(env->FindClass("com/nuist/cropscan/ActPicture/ActGallery"));
+    //获取回调目标类
+    jcls = (jclass) env->NewGlobalRef(env->FindClass(JNI_TARGET_CLASS));
 //    jmethodID mainId = env->GetMethodID(jcls, "<init>", "()V");
 //    jobj = env->NewGlobalRef(env->NewObject(jcls, mainId));
     //获取回调方法ID
@@ -143,12 +150,13 @@ void scan(JNIEnv *env, jobject thiz, jstring root_path) {
 
 
     pc_cls = (jclass) (env->NewGlobalRef(
-            env->FindClass("com/nuist/cropscan/ActPicture/bean/PictureBean")));//获得图片类引用
+            env->FindClass(JNI_CLASS_PICTURE_BEAN)));//获得图片类引用
     folder_cls = (jclass) (env->NewGlobalRef(
-            env->FindClass("com/nuist/cropscan/ActPicture/bean/FolderBean")));//获得图片类引用
+            env->FindClass(JNI_CLASS_FOLDER_BEAN)));//获得文件夹类引用
 
     //获得该类型的构造函数  函数名为 <init> 返回类型必须为 void 即 V
-    pc_construct_method = env->GetMethodID(pc_cls, "<init>", "(Ljava/lang/String;J)V");
+    pc_construct_method = env->GetMethodID(pc_cls, "<init>",
+                                           "(Ljava/lang/String;J)V");
     folder_construct_method = env->GetMethodID(folder_cls, "<init>",
                                                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IJ)V");
 

@@ -16,7 +16,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.nuist.cropscan.R;
-import com.nuist.cropscan.request.BASEURL;
+import com.nuist.request.BASEURL;
 
 import org.json.JSONArray;
 

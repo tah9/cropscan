@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.nuist.cropscan.R;
 import com.nuist.cropscan.scan.CameraSimpleAda;
-import com.nuist.cropscan.request.HttpOk;
+import com.nuist.request.HttpOk;
 
 import org.json.JSONArray;
 

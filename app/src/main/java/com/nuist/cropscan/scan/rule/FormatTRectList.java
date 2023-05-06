@@ -6,7 +6,7 @@ import android.graphics.Rect;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.nuist.cropscan.tool.Tools;
+import com.nuist.tool.screen.Tools;
 import com.nuist.cropscan.view.entiry.TRect;
 
 import java.util.Collections;

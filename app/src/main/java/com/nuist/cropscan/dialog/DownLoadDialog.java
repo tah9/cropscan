@@ -2,6 +2,10 @@ package com.nuist.cropscan.dialog;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -10,11 +14,14 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 
+import com.nuist.cropscan.BuildConfig;
 import com.nuist.cropscan.HomeAct;
 import com.nuist.cropscan.R;
-import com.nuist.cropscan.request.FileConfig;
-import com.nuist.cropscan.tool.ZipUtils;
+import com.nuist.tool.dialog.LoadingDialogUtils;
+import com.nuist.webview.FileConfig;
+import com.nuist.tool.file.ZipUtils;
 import com.nuist.cropscan.view.NumProgressView;
 
 import java.io.File;
@@ -43,29 +50,13 @@ public class DownLoadDialog extends Dialog {
         this.context = context;
     }
 
-    public DownLoadDialog(@NonNull Context context, int themeResId) {
-        super(context, themeResId);
-    }
-
-    protected DownLoadDialog(@NonNull Context context, boolean cancelable, @Nullable OnCancelListener cancelListener) {
-        super(context, cancelable, cancelListener);
-    }
-
-//        name.setText(CommonUtil.formatFileSize(task.getFileSize()));
-
-//
-//    @Download.onTaskComplete
-//    public void onTaskComplete(DownloadTask task) {
-//        Log.d(TAG, "onTaskComplete: ");
-//        progressView.setProgress(100);
-//        info.setVisibility(View.INVISIBLE);
-//        dismiss();
-//    }
 
     private void setSetting() {
+        setCancelable(false);
         setCanceledOnTouchOutside(false);//点击外部Dialog不会消失
-        Window dialogWindow = getWindow();
-        dialogWindow.setGravity(Gravity.CENTER);//设置dialog显示居中
+        Window window = getWindow();
+        window.setGravity(Gravity.CENTER);//设置dialog显示居中
+        window.setBackgroundDrawable(new ColorDrawable(0x00000000));
     }
 
     private String byte2Other(long length) {
@@ -73,7 +64,7 @@ public class DownLoadDialog extends Dialog {
         if (size < 1024) {
             return size + "KB";
         } else {
-            return size / 1024 + "MB";
+            return size / 1024 + "." + size % 1024 % 100 + "MB";
         }
     }
 
@@ -105,7 +96,7 @@ public class DownLoadDialog extends Dialog {
                     is = response.body().byteStream();
                     long total = response.body().contentLength();
                     info.post(() -> {
-                        name.setText("文件大小：" + byte2Other(total));
+                        name.setText("资源大小：" + byte2Other(total));
                     });
                     File downloadFile = new File(savePath);
                     fos = new FileOutputStream(downloadFile);
@@ -123,15 +114,17 @@ public class DownLoadDialog extends Dialog {
                     fos.flush();
                     Log.d(TAG, "download success");
 
-                    info.post(() -> {
-                        LoadingDialogUtils.show(((HomeAct) context));
-                    });
-                    ZipUtils.UnZipFolderDelOri(downloadFile.getAbsolutePath(),
-                            FileConfig.webFileSavePath(context));
-                    info.post(() -> {
-                        LoadingDialogUtils.dismiss();
-                        dismiss();
-                    });
+//                    info.post(() -> {
+//                        LoadingDialogUtils.show(((HomeAct) context));
+//                    });
+//                    ZipUtils.UnZipFolderDelOri(downloadFile.getAbsolutePath(),
+//                            FileConfig.webFileSavePath(context));
+//                    info.post(() -> {
+//                        LoadingDialogUtils.dismiss();
+//                        dismiss();
+//                    });
+
+
                     // 下载完成
 //                    listener.onDownloadSuccess();
 //                    Log.i("DOWNLOAD", "totalTime=" + (System.currentTimeMillis() - startTime));

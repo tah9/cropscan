@@ -24,11 +24,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.nuist.cropscan.base.BaseAct;
 import com.nuist.cropscan.dialog.DownLoadDialog;
-import com.nuist.cropscan.dialog.SnackUtil;
-import com.nuist.cropscan.request.BASEURL;
-import com.nuist.cropscan.request.HttpOk;
+import com.nuist.tool.dialog.SnackUtil;
+import com.nuist.request.BASEURL;
+import com.nuist.request.HttpOk;
 import com.nuist.cropscan.scan.ActCropScan;
 import com.nuist.guide.Act_Login;
+import com.nuist.webview.ActWeb;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -107,11 +108,7 @@ public class HomeAct extends BaseAct {
         });
     }
 
-    private void createView() {
-        if (optString("uid").isEmpty()) {
-            startActivity(new Intent(this, Act_Login.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-            finish();
-        }
+    private void activateView() {
         setContentView(R.layout.act_home);
 
         initView();
@@ -151,10 +148,26 @@ public class HomeAct extends BaseAct {
         });
     }
 
+    private void createView() {
+        if (optString("uid").isEmpty()) {
+            startActivity(new Intent(this, Act_Login.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+            finish();
+        } else {
+            activateView();
+        }
+
+    }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        checkVersion();
+//        checkVersion();
+        String downloadUrl = BASEURL.entireHost + "/static/mobile/android/app-release.apk";
+        String[] split = downloadUrl.split("/");
+        DownLoadDialog downLoadDialog = new DownLoadDialog(this,
+                downloadUrl,
+                getFilesDir().getAbsolutePath() + "/" + split[split.length - 1]);
+        downLoadDialog.show();
     }
 
     private void initView() {
@@ -167,37 +180,37 @@ public class HomeAct extends BaseAct {
         tr = (ImageView) findViewById(R.id.tr);
         fl = (ImageView) findViewById(R.id.fl);
         fr = (ImageView) findViewById(R.id.fr);
-        List<ImageView> aniPicList = Arrays.asList(tl, tr, fl, fr);
-
-        int top = new Random().nextInt(3);
-        int bottom = new Random().nextInt(3);
-        int tlRes[] = {R.drawable.tl1, R.drawable.tl2, R.drawable.tl3};
-        int trRes[] = {R.drawable.tr1, R.drawable.tr2, R.drawable.tr3};
-        int flRes[] = {R.drawable.fl1, R.drawable.fl2, R.drawable.fl3};
-        int frRes[] = {R.drawable.fr1, R.drawable.fr2, R.drawable.fr3};
-
-        Glide.with(context).load(tlRes[top]).into(tl);
-        Glide.with(context).load(trRes[top]).into(tr);
-        Glide.with(context).load(flRes[bottom]).into(fl);
-        Glide.with(context).load(frRes[bottom]).into(fr);
-
-        ObjectAnimator.ofFloat(tl, "translationX", 0f, -800F).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(tl, "translationY", 0F, 800F).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(tr, "translationX", 0f, 800F).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(tr, "translationY", 0F, 800F).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(fl, "translationX", 0f, -800F).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(fl, "translationY", 0F, 800F).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(fr, "translationX", 0f, 800F).setDuration(durTime).start();
-        ObjectAnimator.ofFloat(fr, "translationY", 0F, 800F).setDuration(durTime).start();
-
-        for (ImageView imageView : aniPicList) {
-            ObjectAnimator.ofFloat(imageView, "alpha", 1f, 0f).setDuration(durTime).start();
-        }
-
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            for (ImageView imageView : aniPicList) {
-                imageView.setImageBitmap(null);
-            }
-        }, durTime);
+//        List<ImageView> aniPicList = Arrays.asList(tl, tr, fl, fr);
+//
+//        int top = new Random().nextInt(3);
+//        int bottom = new Random().nextInt(3);
+//        int tlRes[] = {R.drawable.tl1, R.drawable.tl2, R.drawable.tl3};
+//        int trRes[] = {R.drawable.tr1, R.drawable.tr2, R.drawable.tr3};
+//        int flRes[] = {R.drawable.fl1, R.drawable.fl2, R.drawable.fl3};
+//        int frRes[] = {R.drawable.fr1, R.drawable.fr2, R.drawable.fr3};
+//
+//        Glide.with(context).load(tlRes[top]).into(tl);
+//        Glide.with(context).load(trRes[top]).into(tr);
+//        Glide.with(context).load(flRes[bottom]).into(fl);
+//        Glide.with(context).load(frRes[bottom]).into(fr);
+//
+//        ObjectAnimator.ofFloat(tl, "translationX", 0f, -800F).setDuration(durTime).start();
+//        ObjectAnimator.ofFloat(tl, "translationY", 0F, 800F).setDuration(durTime).start();
+//        ObjectAnimator.ofFloat(tr, "translationX", 0f, 800F).setDuration(durTime).start();
+//        ObjectAnimator.ofFloat(tr, "translationY", 0F, 800F).setDuration(durTime).start();
+//        ObjectAnimator.ofFloat(fl, "translationX", 0f, -800F).setDuration(durTime).start();
+//        ObjectAnimator.ofFloat(fl, "translationY", 0F, 800F).setDuration(durTime).start();
+//        ObjectAnimator.ofFloat(fr, "translationX", 0f, 800F).setDuration(durTime).start();
+//        ObjectAnimator.ofFloat(fr, "translationY", 0F, 800F).setDuration(durTime).start();
+//
+//        for (ImageView imageView : aniPicList) {
+//            ObjectAnimator.ofFloat(imageView, "alpha", 1f, 0f).setDuration(durTime).start();
+//        }
+//
+//        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+//            for (ImageView imageView : aniPicList) {
+//                imageView.setImageBitmap(null);
+//            }
+//        }, durTime);
     }
 }
