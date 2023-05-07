@@ -32,7 +32,7 @@ public class LocalGps {
     private LocationManager locationManager;
     private BaseAct act;
 
-    public void requestLocal() {
+    public void attemptRequestLocal() {
         try {
             if (!isLocationProviderEnabled()) {
                 openLocationServer();
@@ -57,14 +57,15 @@ public class LocalGps {
                 listener.updateLocal(localJSON);
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+//            throw new RuntimeException(e);
         }
     }
 
 
     public LocalGps(BaseAct act) {
         this.act = act;
-        requestLocal();
+        attemptRequestLocal();
     }
 
     public interface LocalListener {

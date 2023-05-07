@@ -24,13 +24,32 @@ import org.json.JSONArray;
  */
 public class CropTipsDialog {
     private static final String TAG = "CropTipsDialog";
-    public final Dialog dialog;
+    private Dialog dialog;
     public JSONArray rows;
     public LinearLayoutManager linearLayoutManager;
     public RecyclerView tipRecy;
     public CameraSimpleAda cameraSimpleAda;
 
     private windowDialogListener listener;
+    private boolean show = false;
+
+    public void show() {
+        if (dialog != null) {
+            dialog.show();
+            show = true;
+        }
+    }
+
+    public void toHide() {
+        if (dialog != null) {
+            dialog.hide();
+            show = false;
+        }
+    }
+
+    public boolean beShow() {
+        return show;
+    }
 
     public CropTipsDialog(Activity activity, windowDialogListener listener) {
         this.listener = listener;
@@ -51,7 +70,6 @@ public class CropTipsDialog {
         window.setWindowAnimations(R.style.main_menu_animStyle);
         //设置对话框大小
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        dialog.show();
 //        int orientation = activity.getResources().getConfiguration().orientation;
 //        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
 //            //设置弹出位置
@@ -65,8 +83,8 @@ public class CropTipsDialog {
         tipRecy = root.findViewById(R.id.tip_recy);
 
         root.findViewById(R.id.slide_btn).setOnClickListener(v -> {
-            dialog.dismiss();
-            listener.onDismiss();
+            dialog.hide();
+            listener.listenerHide();
         });
         HttpOk.getInstance().toOwnerUrl("/simpleImg", o -> {
             Log.d(TAG, "CropTipsDialog: " + o);
@@ -94,13 +112,14 @@ public class CropTipsDialog {
         /**
          * 取消
          */
-        void onDismiss();
+        void listenerHide();
     }
 
-    public void toDismiss() {
+
+    public void destroy() {
         if (dialog != null) {
             dialog.dismiss();
-            listener.onDismiss();
+            dialog = null;
         }
     }
 }

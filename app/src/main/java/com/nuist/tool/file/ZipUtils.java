@@ -77,7 +77,7 @@ public class ZipUtils {
             UnZipFolder(zipFileString, outPathString);
             new File(zipFileString).delete();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 

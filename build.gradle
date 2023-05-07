@@ -8,3 +8,14 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
+//android {
+//    signingConfigs {
+//        release {
+//            storeFile file('D:\\jks\\tanghan.jks')
+//            storePassword '101010th'
+//            keyAlias 'tanghan'
+//            keyPassword '101010th'
+//        }
+//    }
+//}
+

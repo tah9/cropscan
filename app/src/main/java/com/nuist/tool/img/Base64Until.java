@@ -27,7 +27,8 @@ public class Base64Until {
             byte[] imageBytes = outputStream.toByteArray();
             return Base64.encodeToString(imageBytes, Base64.NO_WRAP);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            return null;
         }
     }
     public static String bit2B64(Bitmap bitmap) {

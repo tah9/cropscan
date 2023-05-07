@@ -7,12 +7,28 @@ android {
     aaptOptions.cruncherEnabled = false;
     aaptOptions.useNewCruncher = false;
 
+    buildTypes {
+        release {
+            zipAlignEnabled true
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    signingConfigs {
+        release {
+            storeFile file('D:\\jks\\tanghan.jks')
+            storePassword '101010th'
+            keyAlias 'tanghan'
+            keyPassword '101010th'
+        }
+    }
     defaultConfig {
         applicationId "com.nuist.cropscan"
         minSdk 21
         targetSdk 31
-        versionCode 6 //更新识别接口
-        versionName "2.3.3.1"
+        versionCode 7 //修复相机动画
+        versionName "2.3.3.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -33,13 +49,6 @@ android {
         jni.srcDirs = ['src/main/cpp']
     }
 
-    buildTypes {
-        release {
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

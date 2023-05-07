@@ -35,22 +35,22 @@ add_library( # Sets the name of the library.
 
 include_directories(src/main/cpp/FileClass)
 
-find_library( # Sets the name of the path variable.
-        log-lib
-
-        # Specifies the name of the NDK library that
-        # you want CMake to locate.
-        log)
+#find_library( # Sets the name of the path variable.
+#        log-lib
+#
+#        # Specifies the name of the NDK library that
+#        # you want CMake to locate.
+#        log)
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
 # 将log-lib库文件连接到自己的库
-target_link_libraries(
-        ${GALLERY_LIBRARY_NAME}
-        # included in the NDK.
-        ${log-lib})
+#target_link_libraries(
+#        ${GALLERY_LIBRARY_NAME}
+#        # included in the NDK.
+#        ${log-lib})
 
 
 ## 设置去除未使用代码的链接flag

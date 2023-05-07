@@ -202,7 +202,7 @@ public class EvalDialog extends Dialog implements DialogInterface.OnCancelListen
             try {
                 encodeBase64 = URLEncoder.encode(oriBase64, StandardCharsets.UTF_8.toString());
             } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
             HttpOk.getInstance().toBDApi("https://aip.baidubce.com/rest/2.0/image-classify/v1/multi_object_detect",
                     "24.9cec12da92453b98fbfa79dca02fac64.2592000.1685101380.282335-32587397",

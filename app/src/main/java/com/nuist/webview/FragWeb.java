@@ -75,12 +75,6 @@ public class FragWeb extends BaseFrag {
         return optString(key);
     }
 
-    @JavascriptInterface
-    public int getIntValue(String key) {
-        int value = getBaseAct().optInt(key);
-        Log.d(TAG, "getIntValue: " + key + " " + value);
-        return value;
-    }
 
     /*
     js将图片原图链接传给安卓，安卓拿到链接后读取bitmap解析
@@ -145,7 +139,7 @@ public class FragWeb extends BaseFrag {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        getBaseAct().setInt("statusBarHeight", Tools.getCssStatusBarHeight(context));
+        getBaseAct().setString("statusBarHeight", Tools.getCssStatusBarHeight(context)+"");
         View view = inflater.inflate(R.layout.frag_web, null);
         if (color != null) {
             view.setBackgroundColor(Color.parseColor(color));

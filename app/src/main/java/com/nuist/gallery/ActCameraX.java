@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -77,16 +78,8 @@ public abstract class ActCameraX extends BaseAct {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ScreenUtil.setTranslateStatusBar(getWindow());
-    }
-
-
-    //必须设置
-    protected void initCameraX() {
-
-        ConstraintLayout root = (ConstraintLayout) LayoutInflater.from(context).inflate(R.layout.activity_act_camera_x, null);
-
-        setContentView(root);
+        ScreenUtil.setDialogFullScreen(getWindow());
+        setContentView(R.layout.activity_act_camera_x);
 
         initView();
 
@@ -96,12 +89,9 @@ public abstract class ActCameraX extends BaseAct {
             e.printStackTrace();
         }
 
-//        if (!openCamera) {
-//
-//        } else {
         initCamera();
-//        }
     }
+
 
     private boolean onCameraCreate;
 
